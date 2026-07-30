@@ -5,6 +5,11 @@ from contextlib import asynccontextmanager
 from app.core.config import settings
 from app.core.logger import configure_logging, logger
 from app.api.v1.health import router as health_router
+from app.api.v1.feed import router as feed_router
+from app.api.v1.event import router as event_router
+from app.api.v1.timeline import router as timeline_router
+from app.api.v1.category import router as category_router
+from app.api.v1.search import router as search_router
 
 
 @asynccontextmanager
@@ -35,6 +40,11 @@ app.add_middleware(
 
 # Register API Routes
 app.include_router(health_router, prefix="/api/v1", tags=["Health"])
+app.include_router(feed_router, prefix="/api/v1", tags=["Feed"])
+app.include_router(event_router, prefix="/api/v1", tags=["Events"])
+app.include_router(timeline_router, prefix="/api/v1", tags=["Timelines"])
+app.include_router(category_router, prefix="/api/v1", tags=["Categories"])
+app.include_router(search_router, prefix="/api/v1", tags=["Search"])
 
 
 @app.get("/")
