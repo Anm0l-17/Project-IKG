@@ -1,0 +1,43 @@
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Literal
+
+
+class Settings(BaseSettings):
+    APP_ENV: str = "development"
+    LOG_LEVEL: str = "INFO"
+    SECRET_KEY: str = "change-this-in-production-secret-key-32-bytes-min"
+
+    # PostgreSQL Database
+    DATABASE_URL: str = "postgresql+asyncpg://ikg_user:ikg_password@localhost:5432/ikg_db"
+
+    # Neo4j Graph Database
+    NEO4J_URI: str = "bolt://localhost:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str = "ikg_password"
+
+    # Qdrant Vector Database
+    QDRANT_URL: str = "http://localhost:6333"
+
+    # Redis Cache & Task Queue
+    REDIS_URL: str = "redis://localhost:6379/0"
+
+    # MinIO Object Storage
+    MINIO_ENDPOINT: str = "localhost:9000"
+    MINIO_ACCESS_KEY: str = "minioadmin"
+    MINIO_SECRET_KEY: str = "minioadmin"
+    MINIO_BUCKET_NAME: str = "ikg-evidence"
+
+    # AI & LLM Settings
+    LLM_PROVIDER: Literal["gemini", "ollama"] = "gemini"
+    GEMINI_API_KEY: str = ""
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL: str = "qwen3:8b"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
+
+settings = Settings()
