@@ -362,9 +362,14 @@ To resolve architectural bottlenecks, cost constraints, and solo development com
 - **Release 1.0 (Full Knowledge Graph & LLM Insights)**: Add Neo4j graph edge projections, dual LLM provider (Gemini Pro / Ollama Qwen3:8B) summarization, and executive intelligence features.
 
 ## 13.2 Two-Stage Event Matching Cascade & Single-Source Coverage
-- **Stage 1 (Bi-Encoder Candidate Retrieval)**: Top-$K$ candidate retrieval ($K=10$) using `all-MiniLM-L6-v2` embeddings in `pgvector` (Cosine Similarity $\ge 0.70$).
-- **Stage 2 (Cross-Encoder Re-ranking)**: Pairwise relevance check using `cross-encoder/ms-marco-MiniLM-L-6-v2` (Match score $\ge 0.75$).
-- **Single-Source Handling**: Events with only 1 supporting source transition to `DEVELOPING` / `UNVERIFIED_SINGLE_SOURCE` and remain visible to users. If uncorroborated after 10 days, they expire to `ARCHIVED_SINGLE_SOURCE`.
+- **Stage 1 (Bi-Encoder Candidate Retrieval)**: Candidate retrieval ($K=10$) within a $\pm 72$-hour window using `all-MiniLM-L6-v2` embeddings in `pgvector` with HNSW indexing (`m=16, ef_construction=64`, Cosine Similarity $\ge 0.70$).
+- **Stage 2 (Cross-Encoder Re-ranking)**: Pairwise relevance check using `cross-encoder/ms-marco-MiniLM-L-6-v2` (Match score $\ge 0.75$) with candidate result LRU caching.
+- **DEVELOPING Event Trust Contract**:
+  - Events supported by 1 trusted source (e.g. GKToday or The Hindu) enter the `DEVELOPING` state.
+  - **Trust Guarantee**: `DEVELOPING` events are *not* placeholders or unvetted claims; they are verified single-source reports from accredited publications.
+  - **UI Representation**: Rendered with 🔵 `DEVELOPING (Single Source: [Source Name])` badge, confidence score, and original source attribution link. Users can read, search, and reference them.
+  - **Lifecycle Progression**: When a 2nd trusted publication reports on the underlying event within 10 days, the event automatically promotes to 🟢 `VERIFIED`. If uncorroborated after 10 days, it transitions to `ARCHIVED_SINGLE_SOURCE`.
+
 
 ## 13.3 AI Cost & Latency Cascade
 - **Zero Real-Time AI**: All AI/ML pipeline tasks execute asynchronously in background tasks.
