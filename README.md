@@ -2,7 +2,7 @@
 
 > **An AI-powered Event Intelligence & Verification Platform for Indian Affairs**
 
-![Status](https://img.shields.io/badge/Status-Planning-blue)
+![Status](https://img.shields.io/badge/Status-Architecture%20Baseline%20Approved-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Version](https://img.shields.io/badge/Version-v0.1-orange)
 
@@ -84,6 +84,14 @@ Multiple articles can describe one event.
 One event can evolve over months.
 
 The platform continuously updates that event as new information becomes available.
+
+The approved ontology extends this Event-first model without demoting Events:
+
+```text
+Domain → Topic → Story → Event → Claims / Article Evidence
+```
+
+Domains and Topics are taxonomy objects. Stories group related Events. Articles remain evidence, and Claims are article-specific assertions belonging to one Event. See [docs/23_Architecture_and_Ontology_Decisions.md](docs/23_Architecture_and_Ontology_Decisions.md) for the governing decisions.
 
 ---
 

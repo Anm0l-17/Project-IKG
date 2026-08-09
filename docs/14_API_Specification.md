@@ -12,6 +12,8 @@ Owner: Backend Team
 
 Priority: CRITICAL
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -683,3 +685,15 @@ This specification defines the external contract of IKG.
 The frontend must never rely on database structures.
 
 All communication occurs exclusively through these APIs.
+
+---
+
+# Approved API Resource Model
+
+Public API resources must expose the approved hierarchy and independent statuses:
+
+```text
+Domain → Topic → Story → Event → Claims / Evidence
+```
+
+Event responses must distinguish `grouping_status` from `verification_status`. Story endpoints must expose Story Timeline Events and Story verification. Relationship responses must include type, evidence, confidence, status, and history where appropriate. Article-to-Article provenance remains internal and is not the primary graph API.

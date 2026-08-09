@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: Product & Frontend Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Vision
@@ -450,3 +452,5 @@ Never expose internal failures.
 The frontend exists to transform structured knowledge into human understanding.
 
 Every interaction should answer not only "What happened?" but also "How does it connect?" and "Why does it matter?"
+
+The primary exploration path is Domain → Topic → Story → Event. Story Timelines contain Events; Articles and Claims appear as supporting evidence under the relevant Event. Relationship explanations must show evidence, confidence, status, and reason.

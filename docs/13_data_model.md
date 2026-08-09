@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: Backend Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -749,3 +751,9 @@ The Canonical Data Model defines the language of the platform.
 Every module communicates using these objects.
 
 Any schema changes require an Architecture Decision Record (ADR).
+
+---
+
+# Approved Data Model Extension
+
+The canonical data model must additionally represent Domains, Topics, Stories, Claims, typed Evidence, canonical Article history, Article-to-Article provenance, Event grouping status, Story verification, relationship status, relationship evidence, and immutable decision history. PostgreSQL owns these structured records; Neo4j receives only validated relationship projections.

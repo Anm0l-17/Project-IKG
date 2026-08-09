@@ -12,6 +12,8 @@ Priority: HIGH
 
 Owner: DevOps + Backend Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -705,3 +707,5 @@ DEFINITION OF HEALTHY SYSTEM
 Monitoring is not optional.
 
 Every service, model and workflow must expose measurable telemetry so that operational issues, AI regressions and infrastructure failures can be detected and resolved before they impact users.
+
+Telemetry must additionally cover ungrouped Event counts, Story verification queues, evidence independence failures, relationship proposals by type/status, canonical Article changes, Celery task retries/dead letters, and ontology validation rejects.

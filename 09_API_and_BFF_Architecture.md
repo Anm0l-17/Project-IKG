@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: Platform Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -472,3 +474,5 @@ Version 2 may introduce:
 The API and BFF architecture separates presentation concerns from business logic.
 
 Clients receive a stable, efficient interface while internal modules remain free to evolve independently, ensuring long-term maintainability and scalability.
+
+The BFF must expose Domain, Topic, Story, Event, Claim, Evidence, Story Timeline, and validated relationship resources while keeping Article-to-Article provenance internal. Event grouping and verification statuses must be returned as separate fields.

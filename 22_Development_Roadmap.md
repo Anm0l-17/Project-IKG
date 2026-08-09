@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: Product Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -770,3 +772,5 @@ IKG should be developed incrementally.
 Each sprint must produce a usable improvement.
 
 The objective is not simply to complete features, but to build a maintainable, reliable and trustworthy knowledge platform that can evolve over time.
+
+The approved implementation sequence inserts an ontology/data-model reconciliation milestone before expanding ingestion, verification, AI, or graph work. That milestone covers Domain, Topic, Story, Claim, Evidence, grouping status, canonical Article history, provenance, relationship validation, and Celery/Redis infrastructure.

@@ -12,6 +12,8 @@ Priority: HIGH
 
 Owner: DevOps Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -562,3 +564,5 @@ The platform is production-ready only if:
 # Closing Statement
 
 The deployment architecture is designed to support local development, continuous delivery and future horizontal scaling while maintaining operational simplicity during the initial release.
+
+V1 deployment includes Celery workers and Celery Beat backed by Redis for ingestion, matching, verification, summarization, and scheduled rechecks. PostgreSQL remains the structured source of truth and Neo4j a validated graph projection.

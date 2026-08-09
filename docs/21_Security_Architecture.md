@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: Security Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -685,3 +687,5 @@ A release is secure only if:
 Security in IKG protects both infrastructure and knowledge.
 
 The platform is designed to ensure that verified information cannot be silently altered, AI systems cannot bypass verification rules, and every important action is traceable through comprehensive audit logs.
+
+Security controls must protect immutable evidence, canonical Article history, Article provenance, Claim attribution, relationship decision history, and taxonomy administration. AI-generated relationship proposals must not have direct graph-write privileges.

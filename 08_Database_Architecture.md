@@ -39,6 +39,8 @@ Status: Draft
 
 Priority: CRITICAL
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -701,3 +703,9 @@ The storage architecture of India Knowledge Graph follows the principle of "best
 Rather than forcing every problem into one database, the platform assigns each storage technology a clearly defined role.
 
 This separation improves maintainability, scalability, performance and future adaptability while preserving a single, coherent domain model.
+
+---
+
+# Approved Storage Additions
+
+PostgreSQL remains the source of truth for Domains, Topics, Stories, Events, Claims, Articles, Evidence, canonical Article history, grouping status, provenance, relationship decisions, and audit history. Neo4j stores only validated graph projections. Article-to-article provenance is operational/audit data in PostgreSQL and must not become the primary graph projection.

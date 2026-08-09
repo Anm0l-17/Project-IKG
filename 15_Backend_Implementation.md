@@ -12,6 +12,8 @@ Owner: Backend Team
 
 Priority: CRITICAL
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -48,7 +50,7 @@ Authentication (Future)
 - JWT
 
 Task Queue
-- ARQ
+- Celery
 
 Caching
 - Redis
@@ -586,3 +588,11 @@ A feature is complete only if:
 The backend is designed as a modular monolith with event-driven communication.
 
 Every implementation must preserve module boundaries and maintain deterministic, testable business logic.
+
+---
+
+# Approved Implementation Changes
+
+The approved architecture adds Domain, Topic, Story, Claim, Evidence, canonical Article history, Article provenance, grouping status, and relationship history to the implementation plan. These objects must be introduced through migrations and repository interfaces before the corresponding workflows are implemented.
+
+V1 background processing uses **Celery with Redis**. Replace older ARQ/task-queue guidance with Celery workers and scheduled tasks. Tasks must be idempotent, retryable, logged, and auditable.

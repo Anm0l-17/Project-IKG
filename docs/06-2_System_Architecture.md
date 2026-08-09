@@ -10,6 +10,8 @@ Owner: Chief Architect
 
 Priority: CRITICAL
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -691,3 +693,9 @@ Discovery Engine
  ┌──────┼────────┬─────────┬──────────┐
  ▼      ▼        ▼         ▼          ▼
 AI   Verification Timeline Knowledge Search
+
+---
+
+# Approved Container Clarification
+
+The container design is implemented initially as a modular monolith with Celery/Redis workers. The approved resource hierarchy is Domain → Topic → Story → Event. Any future event-bus or microservice extraction must preserve the ontology, evidence rules, and graph-engine ownership defined in the architecture baseline.

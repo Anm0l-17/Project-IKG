@@ -16,6 +16,8 @@ Dependencies:
 - 04_Domain_Model.md
 - GLOSSARY.md
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -951,3 +953,22 @@ Every service, API, AI model, database table and user interface component relies
 Changes to the lifecycle require architectural review and may impact every subsystem.
 
 No implementation may violate this state machine.
+
+---
+
+# Approved Lifecycle Clarification
+
+Event `grouping_status` is independent from Event `verification_status`:
+
+```text
+Grouping:     UNGROUPED | GROUPED
+Verification: PENDING | VERIFIED | REJECTED | ARCHIVED
+```
+
+An Event may therefore be `UNGROUPED + VERIFIED`. Story lifecycle is separate:
+
+```text
+PENDING → VERIFIED → ARCHIVED
+```
+
+`REJECTED` is reserved for invalid Story groupings. Topics use taxonomy metadata (`ACTIVE` or `INACTIVE`) and are not verification subjects.

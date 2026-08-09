@@ -22,6 +22,8 @@ Dependencies
 - 02_State_of_the_Industry.md
 - 03_User_Personas_and_User_Journeys.md
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -114,9 +116,9 @@ Everything connects to Events.
 
 # Domain Objects
 
-The platform contains only ten primary domain objects.
+The approved platform domain includes the first-class Event model plus the supporting Domain, Topic, Story, Claim, Article, Source, Evidence, Entity, Timeline, Relationship, Verification, and User Workspace concepts defined in the architecture baseline.
 
-Nothing else should become a first-class object without architectural review.
+Any additional first-class object still requires architectural review.
 
 ---
 

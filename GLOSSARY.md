@@ -10,6 +10,8 @@ Status: Active
 
 Last Updated: TBD
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -821,3 +823,41 @@ Every future document in this repository shall conform to the vocabulary defined
 If new terminology is introduced,
 
 this document MUST be updated before implementation begins.
+
+---
+
+# Approved Ontology Addendum
+
+## Domain
+
+One of the six fixed top-level taxonomy categories: Current Affairs, Parliament, Economics, Trade, Defence, or Geopolitics.
+
+## Topic
+
+A reusable subject within a Domain. Topics are taxonomy objects and do not have news-verification states.
+
+## Story
+
+A long-running narrative within a Topic that contains Events. A Story has its own chronological timeline and uses `PENDING`, `VERIFIED`, and `ARCHIVED` lifecycle states. `REJECTED` is reserved for invalid groupings.
+
+## Claim
+
+An article-specific assertion belonging to exactly one Event. One Article may contain Claims about multiple Events.
+
+## Canonical Article
+
+The designated primary Article for an Event. An Event has exactly one canonical Article at a time. Replacements preserve the previous canonical Article and its history.
+
+## Grouping Status
+
+An Event dimension independent of verification: `UNGROUPED` or `GROUPED`.
+
+## Relationship Evidence
+
+Typed Article or Claim evidence supporting an Event, Story grouping, or graph relationship. Relationship evidence is retained with confidence, status, and audit history.
+
+## Relationship Status
+
+`PROPOSED`, `VERIFIED`, `REINFORCED`, `DISPUTED`, or `REJECTED`.
+
+The complete ontology and precedence rules are defined in [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md).

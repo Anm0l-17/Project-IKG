@@ -12,6 +12,8 @@ Owner: Chief Architect
 
 Priority: CRITICAL
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -80,3 +82,9 @@ Everything else either creates, enriches, verifies or presents Events.
  └─────────────────────────────────────────────────────────────┘
                         │
                 Infrastructure Layer
+
+---
+
+# Approved Architecture Boundary
+
+The platform implements the approved Domain → Topic → Story → Event ontology as a modular monolith. Articles, Claims, and Evidence are supporting records. V1 background execution uses Celery with Redis; graph writes occur only after ontology and evidence validation.

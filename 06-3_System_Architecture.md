@@ -8,6 +8,8 @@ Status: Draft
 
 Priority: CRITICAL
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -315,3 +317,5 @@ The extraction order prioritises modules with the fewest dependencies.
 The Modular Monolith architecture provides a balance between engineering discipline and delivery speed.
 
 It allows IKG to evolve rapidly while maintaining clear boundaries, ensuring that future growth can be accommodated without sacrificing maintainability or introducing unnecessary operational complexity.
+
+The modular monolith must include explicit interfaces for taxonomy, Stories, Claims, Evidence, ontology validation, and relationship history. Celery tasks handle asynchronous work; the graph module alone may project validated relationships.

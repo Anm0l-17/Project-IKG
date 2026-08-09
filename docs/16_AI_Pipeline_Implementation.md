@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: AI Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -998,3 +1000,17 @@ Every change must be recorded in the Model Registry and Architecture Decision Re
 The AI pipeline is designed as a deterministic, event-driven intelligence system rather than a sequence of isolated AI calls.
 
 Its primary objective is to create trustworthy, explainable knowledge by combining traditional software engineering, machine learning and controlled LLM reasoning into a reproducible workflow.
+
+---
+
+# Approved Ontology Integration
+
+The pipeline must classify and validate information against:
+
+```text
+Domain → Topic → Story → Event → Claim / Article Evidence
+```
+
+AI may propose Claims, Event matches, Story assignments, and relationship candidates. The ontology and evidence engine validates them; only the graph engine writes approved relationships. Article-to-article provenance is retained internally and is not the primary graph.
+
+The Event model stores `grouping_status` independently from `verification_status`, allowing `UNGROUPED + VERIFIED`. A Story is verified only when at least two qualifying Events each have independent source evidence.

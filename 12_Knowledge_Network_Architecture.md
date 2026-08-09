@@ -12,6 +12,8 @@ Priority: CRITICAL
 
 Owner: Knowledge Platform Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -42,17 +44,7 @@ The Knowledge Network exists to answer the second question.
 
 # Core Principle
 
-Everything in the graph is either
-
-Entity
-
-or
-
-Event.
-
-Nothing else.
-
-Every other concept is derived.
+The primary graph contains Domain, Topic, Story, Event, and reusable Entity nodes. Articles and Claims remain evidence/provenance records and are not the primary visual graph nodes.
 
 ---
 
@@ -611,3 +603,15 @@ The Knowledge Network is the cognitive layer of India Knowledge Graph.
 It transforms isolated facts into connected understanding.
 
 Rather than storing information, it models the evolving structure of India's public affairs, enabling exploration, explanation and long-term contextual reasoning.
+
+---
+
+# Approved Graph Constraints
+
+The user-facing graph is organized as:
+
+```text
+Domain → Topic → Story → Event
+```
+
+Articles and Claims support Events and relationships but are not the primary visual graph nodes. The approved Event-to-Event relationship types are `PRECEDES`, `CAUSES`, and `RELATED_TO`. Cross-Story relationships are permitted with stricter evidence and confidence requirements. `RELATED_TO` requires two independent supporting Articles. The graph engine validates AI proposals before creating edges and stores relationship status, evidence, confidence, and immutable history.

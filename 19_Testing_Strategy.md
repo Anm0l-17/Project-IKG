@@ -12,6 +12,8 @@ Priority: HIGH
 
 Owner: QA Team
 
+> **Architecture baseline:** This document must be read together with [23_Architecture_and_Ontology_Decisions.md](23_Architecture_and_Ontology_Decisions.md), which is the approved source of truth for the Domain → Topic → Story → Event ontology, evidence rules, lifecycle dimensions, relationship validation, V1 sources, and background processing. Where older text conflicts, the architecture baseline takes precedence.
+
 ---
 
 # Purpose
@@ -711,3 +713,5 @@ A feature is complete only if:
 Testing is not a separate phase of development.
 
 It is an integral part of the engineering process and must accompany every feature from design through deployment.
+
+The test plan must cover ontology permission matrices, Claim-to-Event cardinality, one canonical Article per Event, canonical Article history, independent Story verification evidence, grouping/verification independence, relationship evidence thresholds, relationship lifecycle transitions, and idempotent Celery retries.
