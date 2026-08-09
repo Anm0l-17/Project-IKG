@@ -32,4 +32,5 @@ class Article(Base, TimestampMixin):
 
     # Relationships
     source: Mapped["Source"] = relationship("Source", back_populates="articles")
-    event: Mapped["Event"] = relationship("Event", back_populates="articles")
+    event: Mapped["Event"] = relationship("Event", back_populates="articles", foreign_keys=[event_id])
+

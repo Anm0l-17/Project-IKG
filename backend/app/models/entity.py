@@ -31,9 +31,10 @@ class EventEntity(Base, TimestampMixin):
     event_id: Mapped[str] = mapped_column(String(36), ForeignKey("events.id"), nullable=False, index=True)
     entity_id: Mapped[str] = mapped_column(String(36), ForeignKey("entities.id"), nullable=False, index=True)
 
-    relationship: Mapped[str] = mapped_column(String(100), default="MENTIONS", nullable=False)
+    relationship_type: Mapped[str] = mapped_column(String(100), default="MENTIONS", nullable=False)
     confidence: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
 
     # Relationships
     event: Mapped["Event"] = relationship("Event", back_populates="event_entities")
     entity: Mapped["Entity"] = relationship("Entity", back_populates="event_entities")
+
