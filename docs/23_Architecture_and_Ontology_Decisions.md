@@ -352,20 +352,49 @@ The following invariants are mandatory:
 
 ---
 
-# 12. Implementation Sequence
+# 13. Pragmatic Engineering & Feasibility Resolutions
 
-Before feature implementation proceeds:
+To resolve architectural bottlenecks, cost constraints, and solo development complexity, the following engineering decisions are adopted:
 
-1. Reconcile the domain model and glossary with this document.
-2. Reconcile the canonical data model and lifecycle definitions.
-3. Update API contracts and response schemas.
-4. Update backend implementation guidance for Celery and Redis.
-5. Add database structures for Domains, Topics, Stories, Claims, Evidence, canonical Article history, provenance, relationship history, and grouping status.
-6. Add ontology validation and evidence-threshold tests.
-7. Only then implement ingestion, matching, verification, timeline, and graph workflows against the reconciled model.
+## 13.1 Phased Delivery & MVP Definition
+- **MVP 0.1 (Single-DB Baseline)**: Relational schema (`Domain`, `Topic`, `Story`, `Event`, `Article`), RSS ingestion (GKToday + fallback), single-source candidate creation, Next.js card feed & Event detail page. *No Neo4j, No Celery, No LLM.*
+- **Beta 0.5 (Verification & Search)**: Add `pgvector` for vector embeddings, bi-encoder + cross-encoder event matching pipeline, 2/3 verification consensus engine, single-source developing state.
+- **Release 1.0 (Full Knowledge Graph & LLM Insights)**: Add Neo4j graph edge projections, dual LLM provider (Gemini Pro / Ollama Qwen3:8B) summarization, and executive intelligence features.
+
+## 13.2 Two-Stage Event Matching Cascade & Single-Source Coverage
+- **Stage 1 (Bi-Encoder Candidate Retrieval)**: Top-$K$ candidate retrieval ($K=10$) using `all-MiniLM-L6-v2` embeddings in `pgvector` (Cosine Similarity $\ge 0.70$).
+- **Stage 2 (Cross-Encoder Re-ranking)**: Pairwise relevance check using `cross-encoder/ms-marco-MiniLM-L-6-v2` (Match score $\ge 0.75$).
+- **Single-Source Handling**: Events with only 1 supporting source transition to `DEVELOPING` / `UNVERIFIED_SINGLE_SOURCE` and remain visible to users. If uncorroborated after 10 days, they expire to `ARCHIVED_SINGLE_SOURCE`.
+
+## 13.3 AI Cost & Latency Cascade
+- **Zero Real-Time AI**: All AI/ML pipeline tasks execute asynchronously in background tasks.
+- **Hierarchical Cost Gating**:
+  1. *URL Hash Check* (O(1) lookup - Free)
+  2. *Title Exact Match* (Heuristic - Free)
+  3. *Bi-Encoder Vector Search* (Fast local vector search)
+  4. *Cross-Encoder Scoring* (Local CPU inference)
+  5. *LLM (Gemini Pro)*: Invoked **ONLY** for verified multi-source event summarization (never per raw article).
+
+## 13.4 Resilient Ingestion Architecture
+- **Adapter Pattern (`BaseIngestionAdapter`)**: Decouples parser logic from specific publishers.
+- **Fallback Ingestion Providers**: Primary RSS feeds → Fallback News API aggregators → Playwright headless scraper fallback.
+- **Dynamic Consensus Degrade**: If a source feed is unreachable, the system enters `DEGRADED` mode and adjusts verification consensus dynamically across active trusted sources.
+
+## 13.5 Deterministic Graph Edge Inference Rules
+- **`PRECEDES`**: Automatic temporal ordering ($T_A < T_B$) within the same `Story`.
+- **`CAUSES`**: Inferred when explicit causal phrasing ("following the directive", "as a direct result") is present, entity overlap $\ge 0.60$, and cross-encoder score $\ge 0.85$.
+- **`RELATED_TO`**: Inferred when two Events share $\ge 3$ named entities and belong to the same `Topic` with vector cosine similarity $\ge 0.75$.
+
+## 13.6 Solo Developer Infrastructure Simplification
+- **Phase 1 Infrastructure Consolidation**:
+  - Replace standalone vector DB (Qdrant) with PostgreSQL `pgvector`.
+  - Replace standalone Neo4j in Phase 1 with PostgreSQL CTE graph queries.
+  - Replace Celery/Redis in Phase 1 with FastAPI `BackgroundTasks` / `APScheduler`.
+- **Total Solo Effort Target**: 10–12 weeks across 3 iterations instead of 6+ months.
 
 ---
 
 # Closing Statement
 
 IKG models a structured, evidence-backed knowledge system. Its reliability depends on maintaining clear boundaries between Articles, Claims, Events, Stories, Topics, Domains, and graph relationships. The ontology engine and evidence rules are the safeguards that keep AI-assisted knowledge explainable, bounded, and auditable.
+
