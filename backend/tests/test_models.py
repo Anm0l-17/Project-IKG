@@ -77,6 +77,42 @@ def test_event_model_instantiation():
     assert event.grouping_status == "UNGROUPED"
 
 
+def test_event_verification_state_transitions():
+    event = Event(
+        canonical_title="ISRO Launches Climate Monitoring Satellite",
+        slug="isro-launches-climate-sat-2026",
+        category="Current Affairs",
+        verification_status="Developing"
+    )
+    assert event.verification_status == "Developing"
+
+    # Transition from Developing -> Verified upon 2nd corroborating publication vote
+    event.verification_status = "Verified"
+    assert event.verification_status == "Verified"
+
+    # Transition from Verified -> Archived after story lifecycle completion
+    event.verification_status = "Archived"
+    assert event.verification_status == "Archived"
+
+
+def test_event_grouping_status_transitions():
+    story_id = generate_uuid7()
+    event = Event(
+        canonical_title="Defence Ministry Approves Submarine Procurement",
+        slug="defence-ministry-approves-submarines-2026",
+        category="Defence",
+        grouping_status="UNGROUPED"
+    )
+    assert event.grouping_status == "UNGROUPED"
+    assert event.primary_story_id is None
+
+    # Grouping transition: UNGROUPED -> GROUPED once assigned to a primary Story
+    event.grouping_status = "GROUPED"
+    event.primary_story_id = story_id
+    assert event.grouping_status == "GROUPED"
+    assert event.primary_story_id == story_id
+
+
 def test_claim_model_instantiation():
     claim = Claim(
         event_id=generate_uuid7(),
