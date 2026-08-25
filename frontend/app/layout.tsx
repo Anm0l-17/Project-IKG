@@ -1,5 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'India Knowledge Graph | Event Intelligence Platform',
@@ -28,10 +29,10 @@ export default function RootLayout({
               </div>
             </div>
             <nav className="flex space-x-6 text-sm font-medium text-slate-600">
-              <a href="/" className="hover:text-slate-900 transition-colors">Home</a>
-              <a href="/feed" className="hover:text-slate-900 transition-colors">Feed</a>
-              <a href="/graph" className="hover:text-slate-900 transition-colors">Knowledge Graph</a>
-              <a href="/timeline" className="hover:text-slate-900 transition-colors">Timelines</a>
+              <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
+              <Link href="/feed" className="hover:text-slate-900 transition-colors">Feed</Link>
+              <Link href="/graph" className="hover:text-slate-900 transition-colors">Knowledge Graph</Link>
+              <Link href="/timeline" className="hover:text-slate-900 transition-colors">Timelines</Link>
             </nav>
           </div>
         </header>

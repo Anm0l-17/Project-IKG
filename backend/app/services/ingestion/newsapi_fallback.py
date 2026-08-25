@@ -1,7 +1,11 @@
 from datetime import datetime, timezone
 import dateutil.parser
 import httpx
+import logging
 from typing import Optional
+from datetime import timedelta
+
+logger = logging.getLogger(__name__)
 from app.services.ingestion.base import BaseIngestionAdapter, IngestedArticleDTO
 
 
@@ -9,6 +13,9 @@ class NewsAPIFallbackAdapter(BaseIngestionAdapter):
     """
     Secondary fallback adapter using NewsAPI aggregator service when primary RSS feeds are unreachable.
     """
+    # Class-level state to persist backoff across scheduler instances
+    _backoff_until: Optional[datetime] = None
+
     def __init__(self, api_key: Optional[str] = None):
         super().__init__(source_name="NewsAPI Aggregator", domain="newsapi.org")
         self.api_key = api_key
@@ -16,6 +23,11 @@ class NewsAPIFallbackAdapter(BaseIngestionAdapter):
     async def fetch_articles(self, limit: int = 50) -> list[IngestedArticleDTO]:
         articles: list[IngestedArticleDTO] = []
         if not self.api_key:
+            return articles
+
+        # Check if we are currently backing off due to rate limits
+        if type(self)._backoff_until and datetime.now(timezone.utc) < type(self)._backoff_until:
+            logger.warning(f"NewsAPI adapter is backing off until {type(self)._backoff_until}")
             return articles
 
         url = "https://newsapi.org/v2/top-headlines"
@@ -29,6 +41,12 @@ class NewsAPIFallbackAdapter(BaseIngestionAdapter):
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(url, params=params)
+                
+                if response.status_code == 429:
+                    type(self)._backoff_until = datetime.now(timezone.utc) + timedelta(hours=1)
+                    logger.error("NewsAPI rate limit hit (429). Backing off for 1 hour.")
+                    return articles
+
                 if response.status_code != 200:
                     return articles
 

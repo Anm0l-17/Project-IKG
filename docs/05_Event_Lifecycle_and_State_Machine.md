@@ -250,15 +250,19 @@ DIFFERENT
 
 Meaning
 
-Not enough evidence.
+A newly created Event candidate supported by a single trusted source or undergoing corroboration.
 
 Current Vote Count
 
-1/3
+1/3 (Single trusted source)
 
-Behaviour
+User-Facing Derived State Label
 
-Wait.
+`is_developing = True` / 🔵 **DEVELOPING (Single Source)**
+
+Behavior
+
+Wait for additional corroborating coverage from V1 trusted sources.
 
 Recheck daily.
 
@@ -268,11 +272,9 @@ Maximum Duration
 
 Possible Outcomes
 
-Verified
-
-Rejected
-
-Expired
+- **Verified**: Promoted to `VERIFIED` when 2nd trusted publication corroborates the Event within 10 days.
+- **Rejected**: Invalidated or flagged as duplicate/hallucinated.
+- **Archived**: Uncorroborated after 10 days; transitions to `ARCHIVED` (single-source archived).
 
 ---
 

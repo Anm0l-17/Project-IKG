@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.article import Article
@@ -14,7 +14,7 @@ class IngestionPipeline:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def _get_or_create_source(self, name: str, domain: str) -> Source:
+    async def _get_or_create_source(self, name: str, domain: str, rss_url: str | None = None) -> Source:
         stmt = select(Source).where(Source.domain == domain)
         res = await self.db.execute(stmt)
         source = res.scalar_one_or_none()
@@ -22,9 +22,15 @@ class IngestionPipeline:
             source = Source(
                 name=name,
                 domain=domain,
+                rss_url=rss_url,
                 trust_score=1.0,
                 is_active=True
             )
+            self.db.add(source)
+            await self.db.commit()
+            await self.db.refresh(source)
+        elif rss_url and source.rss_url != rss_url:
+            source.rss_url = rss_url
             self.db.add(source)
             await self.db.commit()
             await self.db.refresh(source)
@@ -37,7 +43,11 @@ class IngestionPipeline:
         if not ingested_dtos:
             return saved_articles
 
-        source = await self._get_or_create_source(adapter.source_name, adapter.domain)
+        source = await self._get_or_create_source(
+            adapter.source_name, 
+            adapter.domain, 
+            getattr(adapter, "rss_url", None)
+        )
 
         for dto in ingested_dtos:
             url_hash = compute_article_hash(dto.url)
@@ -47,9 +57,13 @@ class IngestionPipeline:
             if existing_hash.scalar_one_or_none():
                 continue
 
-            # Title Fuzzy Match Check against recent articles (last 100)
+            # Title Fuzzy Match Check against recent articles (last 7 days, max 500)
+            seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
             recent_articles_res = await self.db.execute(
-                select(Article).order_by(Article.created_at.desc()).limit(100)
+                select(Article)
+                .where(Article.created_at >= seven_days_ago)
+                .order_by(Article.created_at.desc())
+                .limit(500)
             )
             recent_articles = recent_articles_res.scalars().all()
             

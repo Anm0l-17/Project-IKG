@@ -17,8 +17,8 @@ class Verification(Base, TimestampMixin):
     required_votes: Mapped[int] = mapped_column(Integer, default=2, nullable=False)
     confidence: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
-    status: Mapped[str] = mapped_column(String(20), default="Pending", nullable=False, index=True)
-    # Status: Pending | Verified | Rejected | Expired
+    status: Mapped[str] = mapped_column(String(20), default="PENDING", nullable=False, index=True)
+    # Status: PENDING | VERIFIED | REJECTED | ARCHIVED
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)

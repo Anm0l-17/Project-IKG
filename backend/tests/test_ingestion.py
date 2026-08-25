@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.services.ingestion.base import BaseIngestionAdapter, IngestedArticleDTO
 from app.services.ingestion.deduplication import compute_article_hash, is_title_duplicate, normalize_title
 from app.services.ingestion.gktoday import GKTodayAdapter
@@ -76,3 +76,63 @@ async def test_fallback_cascade_logic():
     assert len(articles) == 1
     assert articles[0].source_name == "FallbackSource"
     assert articles[0].headline == "Fallback News Headline"
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.source import Source
+from app.models.article import Article
+from app.services.ingestion.pipeline import IngestionPipeline
+
+@pytest.mark.asyncio
+async def test_pipeline_fuzzy_time_bound(db_session: AsyncSession):
+    # Setup source and old article
+    source = Source(name="Test", domain="test.com")
+    db_session.add(source)
+    await db_session.commit()
+
+    old_article = Article(
+        source_id=source.id,
+        url="http://test.com/old",
+        headline="Old News Headline",
+        summary="Old summary",
+        published_at=datetime.now(timezone.utc) - timedelta(days=10),
+        scraped_at=datetime.now(timezone.utc) - timedelta(days=10),
+        clean_text="Clean text",
+        hash="oldhash"
+    )
+    db_session.add(old_article)
+    await db_session.commit()
+    
+    # Manually override created_at to be older than 7 days
+    old_article.created_at = datetime.now(timezone.utc) - timedelta(days=10)
+    db_session.add(old_article)
+    await db_session.commit()
+
+    # Create mock adapter returning article with same headline
+    class MockAdapter(BaseIngestionAdapter):
+        async def fetch_articles(self, limit: int = 50) -> list[IngestedArticleDTO]:
+            return [
+                IngestedArticleDTO(
+                    source_name="Test",
+                    source_domain="test.com",
+                    url="http://test.com/new",
+                    headline="Old News Headline", # Same title
+                    clean_text="New content body"
+                )
+            ]
+
+    pipeline = IngestionPipeline(db_session)
+    saved = await pipeline.ingest_from_adapter(MockAdapter(source_name="Test", domain="test.com"))
+    
+    # Because old_article is >7 days old, it shouldn't be matched by the fuzzy duplicate check
+    assert len(saved) == 1
+    assert saved[0].url == "http://test.com/new"
+
+
+def test_ingestion_scheduler_lifecycle():
+    from app.workers.scheduler import IngestionScheduler
+    scheduler = IngestionScheduler()
+    scheduler.start(interval_minutes=60)
+    assert scheduler.scheduler.running is True
+    scheduler.shutdown()
+    assert scheduler.scheduler.running is False
+

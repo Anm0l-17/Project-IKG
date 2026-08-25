@@ -19,6 +19,11 @@ import sys
 sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), "..")))
 
 from app.models import Base
+from app.core.config import settings
+
+# Override sqlalchemy.url in alembic config with ALEMBIC_DATABASE_URL
+config.set_main_option("sqlalchemy.url", settings.ALEMBIC_DATABASE_URL)
+
 target_metadata = Base.metadata
 
 

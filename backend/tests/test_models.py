@@ -67,13 +67,13 @@ def test_event_model_instantiation():
         slug="union-budget-2026-table-in-parliament",
         category="Economics",
         knowledge_score=92.5,
-        verification_status="Verified",
+        verification_status="VERIFIED",
         grouping_status="UNGROUPED"
     )
     assert event.canonical_title == "Union Budget 2026 Table in Parliament"
     assert event.category == "Economics"
     assert event.knowledge_score == 92.5
-    assert event.verification_status == "Verified"
+    assert event.verification_status == "VERIFIED"
     assert event.grouping_status == "UNGROUPED"
 
 
@@ -82,17 +82,17 @@ def test_event_verification_state_transitions():
         canonical_title="ISRO Launches Climate Monitoring Satellite",
         slug="isro-launches-climate-sat-2026",
         category="Current Affairs",
-        verification_status="Developing"
+        verification_status="PENDING"
     )
-    assert event.verification_status == "Developing"
+    assert event.verification_status == "PENDING"
 
-    # Transition from Developing -> Verified upon 2nd corroborating publication vote
-    event.verification_status = "Verified"
-    assert event.verification_status == "Verified"
+    # Transition from PENDING -> VERIFIED upon 2nd corroborating publication vote
+    event.verification_status = "VERIFIED"
+    assert event.verification_status == "VERIFIED"
 
-    # Transition from Verified -> Archived after story lifecycle completion
-    event.verification_status = "Archived"
-    assert event.verification_status == "Archived"
+    # Transition from VERIFIED -> ARCHIVED after story lifecycle completion
+    event.verification_status = "ARCHIVED"
+    assert event.verification_status == "ARCHIVED"
 
 
 def test_event_grouping_status_transitions():

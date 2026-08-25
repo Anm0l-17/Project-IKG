@@ -11,6 +11,7 @@ dependencies = [
     "pydantic-settings>=2.5.0",
     "sqlalchemy>=2.0.35",
     "asyncpg>=0.29.0",
+    "psycopg[binary]>=3.2.0",
     "alembic>=1.13.3",
     "redis>=5.0.8",
     "arq>=0.26.1",
@@ -27,6 +28,7 @@ dependencies = [
 dev = [
     "pytest>=8.3.3",
     "pytest-asyncio>=0.24.0",
+    "aiosqlite>=0.20.0",
     "ruff>=0.6.8",
 ]
 

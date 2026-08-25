@@ -12,12 +12,18 @@ from app.api.v1.category import router as category_router
 from app.api.v1.search import router as search_router
 
 
+from app.db.postgres import engine
+from app.workers.scheduler import ingestion_scheduler
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
     logger.info("Starting India Knowledge Graph Backend Service", env=settings.APP_ENV)
+    ingestion_scheduler.start(interval_minutes=15)
     yield
     logger.info("Shutting down India Knowledge Graph Backend Service")
+    ingestion_scheduler.shutdown()
+    await engine.dispose()
 
 
 app = FastAPI(
@@ -30,10 +36,11 @@ app = FastAPI(
 )
 
 # Configure CORS
+allow_origins = ["http://localhost:3000", "http://127.0.0.1:3000"] if settings.APP_ENV == "development" else []
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allow_origins if allow_origins else ["*"],
+    allow_credentials=True if allow_origins else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

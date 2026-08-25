@@ -9,6 +9,10 @@ class Settings(BaseSettings):
 
     # PostgreSQL Database
     DATABASE_URL: str = "postgresql+asyncpg://ikg_user:ikg_password@localhost:5432/ikg_db"
+    ALEMBIC_DATABASE_URL: str = "postgresql+psycopg://ikg_user:ikg_password@localhost:5432/ikg_db"
+    DATABASE_SSL: str = "disable"  # "require", "verify-full", or "disable"
+    DB_POOL_SIZE: int = 5
+    DB_MAX_OVERFLOW: int = 10
 
     # Neo4j Graph Database
     NEO4J_URI: str = "bolt://localhost:7687"

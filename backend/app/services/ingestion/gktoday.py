@@ -15,8 +15,11 @@ class GKTodayAdapter(BaseIngestionAdapter):
 
     async def fetch_articles(self, limit: int = 50) -> list[IngestedArticleDTO]:
         articles: list[IngestedArticleDTO] = []
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
         try:
-            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
                 response = await client.get(self.rss_url)
                 if response.status_code != 200:
                     return articles
@@ -42,6 +45,7 @@ class GKTodayAdapter(BaseIngestionAdapter):
                     summary_raw = getattr(entry, "summary", "") or getattr(entry, "description", "")
                     soup = BeautifulSoup(summary_raw, "html.parser")
                     clean_text = soup.get_text(separator=" ").strip() or title
+                    clean_text = " ".join(clean_text.split())  # Normalize whitespace
 
                     articles.append(
                         IngestedArticleDTO(

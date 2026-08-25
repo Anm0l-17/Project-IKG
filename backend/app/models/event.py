@@ -31,11 +31,11 @@ class Event(Base, TimestampMixin):
     grouping_status: Mapped[str] = mapped_column(String(20), default="UNGROUPED", nullable=False, index=True)
     # Grouping Status: UNGROUPED | GROUPED
 
-    verification_status: Mapped[str] = mapped_column(String(20), default="Pending", nullable=False, index=True)
-    # Verification Statuses: Pending | Developing | Verified | Rejected | Expired | Archived
+    verification_status: Mapped[str] = mapped_column(String(20), default="PENDING", nullable=False, index=True)
+    # Verification Statuses: PENDING | VERIFIED | REJECTED | ARCHIVED
 
-    status: Mapped[str] = mapped_column(String(20), default="Candidate", nullable=False, index=True)
-    # States: Candidate | Discovered | Matching | Pending | Developing | Verified | Active | Historical | Archived | Deprecated
+    status: Mapped[str] = mapped_column(String(20), default="PENDING", nullable=False, index=True)
+    # States: DISCOVERED | NORMALISED | MATCHING | PENDING | VERIFIED | ACTIVE | HISTORICAL | ARCHIVED | DEPRECATED
 
     first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     last_updated: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
