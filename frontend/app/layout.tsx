@@ -31,6 +31,8 @@ export default function RootLayout({
             <nav className="flex space-x-6 text-sm font-medium text-slate-600">
               <Link href="/" className="hover:text-slate-900 transition-colors">Home</Link>
               <Link href="/feed" className="hover:text-slate-900 transition-colors">Feed</Link>
+              <Link href="/stories" className="hover:text-slate-900 transition-colors">Stories</Link>
+              <Link href="/search" className="hover:text-slate-900 transition-colors">Search</Link>
               <Link href="/graph" className="hover:text-slate-900 transition-colors">Knowledge Graph</Link>
               <Link href="/timeline" className="hover:text-slate-900 transition-colors">Timelines</Link>
             </nav>

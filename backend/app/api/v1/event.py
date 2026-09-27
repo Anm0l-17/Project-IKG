@@ -16,6 +16,8 @@ from app.services.ingestion.thehindu import TheHinduAdapter
 from app.services.ingestion.indianexpress import IndianExpressAdapter
 from app.services.ingestion.newsapi_fallback import NewsAPIFallbackAdapter
 from app.services.events.candidate_generation import CandidateEventService
+from app.api.v1.schemas.graph import GraphResponse
+from app.services.graph.engine import GraphEngine
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -147,4 +149,27 @@ async def list_events(
     events = res.scalars().all()
 
     return [EventSummaryResponse.model_validate(ev) for ev in events]
+
+
+@router.get("/{id}/graph", response_model=GraphResponse)
+async def get_event_graph_subgraph(
+    id: str,
+    depth: int = Query(1, ge=1, le=3, description="Subgraph traversal depth"),
+    min_confidence: float = Query(0.5, ge=0.0, le=1.0, description="Minimum edge confidence"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Returns ego-subgraph for an Event (Events, Entities, and directed edges).
+    """
+    engine = GraphEngine(db)
+    graph_data = await engine.get_event_subgraph(
+        event_id=id, depth=depth, min_confidence=min_confidence
+    )
+    if not graph_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Event with ID '{id}' not found.",
+        )
+    return GraphResponse(**graph_data)
+
 

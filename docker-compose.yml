@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     container_name: ikg-postgres
     restart: always
     environment:
@@ -18,6 +18,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ikg-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ikg-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ikg-network
 
   neo4j:
     image: neo4j:5-community
@@ -36,6 +54,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ikg-network
 
   qdrant:
     image: qdrant/qdrant:latest
@@ -51,20 +71,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: ikg-redis
-    restart: always
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    networks:
+      - ikg-network
 
   minio:
     image: minio/minio:latest
@@ -85,6 +93,77 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - ikg-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ikg-backend
+    restart: always
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://ikg_user:ikg_password@postgres:5432/ikg_db
+      ALEMBIC_DATABASE_URL: postgresql+psycopg://ikg_user:ikg_password@postgres:5432/ikg_db
+      REDIS_URL: redis://redis:6379/0
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: ikg_password
+      QDRANT_URL: http://qdrant:6333
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ikg-network
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ikg-worker
+    restart: always
+    command: ["arq", "app.workers.arq_worker.WorkerSettings"]
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://ikg_user:ikg_password@postgres:5432/ikg_db
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ikg-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ikg-frontend
+    restart: always
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ikg-network
 
 volumes:
   postgres_data:
@@ -92,3 +171,7 @@ volumes:
   qdrant_storage:
   redis_data:
   minio_data:
+
+networks:
+  ikg-network:
+    driver: bridge

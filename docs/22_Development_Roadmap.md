@@ -434,70 +434,136 @@ Automatic Event Matching
 ---
 
 ====================================================
-SPRINT 8
+SPRINT 8 (COMPLETED — Session 9)
 ====================================================
 
-Knowledge Graph
+Knowledge Graph Engine & Relationship Inference
 
 Tasks
 
-Neo4j
-
-Graph Builder
-
-Relationship Extraction
-
-Graph API
-
-Graph Visualisation
+✓ EventRelationship Model & Alembic Migration 003
+✓ Deterministic Graph Edge Inference Rules (PRECEDES, CAUSES, RELATED_TO)
+✓ Subgraph & Global Graph REST APIs (GET /api/v1/graph, GET /api/v1/events/{id}/graph)
+✓ Interactive SVG Knowledge Graph Visualizer & Inspector (KnowledgeGraphViewer.tsx)
+✓ Dedicated /graph Explorer Page & Event Detail Subgraph View
+✓ Automated Unit & Integration Tests (test_graph_engine.py, test_api_graph.py)
 
 Deliverable
 
-Interactive Graph
+Interactive Knowledge Network Live
 
 ---
 
 ====================================================
-SPRINT 9
+SPRINT 9 (COMPLETED — Session 10)
 ====================================================
 
-LLM Integration
+Story Clustering & Narrative Evolution
 
 Tasks
 
-Summaries
-
-Reasoning
-
-Recommendations
-
-Prompt Registry
+✓ StoryClusteringService with clustering and multi-source consensus verification
+✓ Multi-source verification evaluation (>= 2 events, >= 2 independent publications)
+✓ Story REST API schemas & endpoints (GET /api/v1/stories, GET /api/v1/stories/{id}, POST /api/v1/stories/cluster)
+✓ Frontend Stories Directory (/stories) & Story Dossier (/stories/[id])
+✓ Narrative progression timeline and event grouping indicators
+✓ Automated Unit & Integration Tests (test_story_clustering.py, test_api_story.py)
 
 Deliverable
 
-AI Features
+Automated Story Clustering & Narrative Evolution Live
 
 ---
 
 ====================================================
-SPRINT 10
+SESSION 11 (COMPLETED)
 ====================================================
 
-Quality
+Semantic & Hybrid Search via pgvector
 
 Tasks
 
-Testing
+✓ VectorType TypeDecorator supporting dense vector embeddings (384-dim)
+✓ Event embedding column and Alembic migration 004 (HNSW + Full-Text Search indexing)
+✓ HybridSearchService: Lexical scoring + Dense Vector Cosine Similarity + Reciprocal Rank Fusion
+✓ Filtering by Category, Verification Status, and Topic
+✓ Enhanced Search APIs: GET /api/v1/search and POST /api/v1/search/backfill-embeddings
+✓ Interactive Frontend /search Page with Match Type Badges (Hybrid, Semantic, Exact), filters & scores
+✓ Automated Unit & API Integration Tests (test_hybrid_search.py, test_api_search.py)
 
-Monitoring
+Deliverable
 
-Security
+Production-Grade Semantic & Hybrid Search Live
 
-Optimisation
+---
 
-Bug Fixes
+====================================================
+SESSION 12 (COMPLETED)
+====================================================
 
-Documentation
+Distributed Background Processing (Redis / ARQ & Async Pipeline)
+
+Tasks
+
+✓ Unified TaskDispatcher supporting Redis/ARQ distributed queue with in-process async fallback
+✓ Background worker task definitions (task_ingest_rss, task_verification_consensus, task_infer_relationships, task_cluster_stories, task_backfill_embeddings)
+✓ ARQ Worker configuration (WorkerSettings) for scalable multi-worker deployment
+✓ Admin / Operations task management APIs (GET /api/v1/tasks/status, POST /api/v1/tasks/trigger)
+✓ Automated Unit & API Integration Tests (test_background_workers.py, test_api_tasks.py)
+
+Deliverable
+
+Resilient Distributed Background Processing Pipeline Live
+
+---
+
+====================================================
+SESSION 13 (COMPLETED)
+====================================================
+
+Monitoring, Observability & Security
+
+Tasks
+
+✓ Structured telemetry logging with correlation IDs (X-Request-ID) and response time tracking
+✓ In-memory MetricsCollector recording throughput, status distributions, popular routes, and error rates
+✓ System metrics API (GET /api/v1/metrics) reporting telemetry & live platform database statistics
+✓ OWASP SecurityHeadersMiddleware (nosniff, DENY, XSS protection, HSTS, Referrer-Policy)
+✓ RateLimiterMiddleware (sliding window IP throttling) protecting against endpoint abuse
+✓ Enhanced health probes: Liveness (/api/v1/health) & Deep Readiness probe (/api/v1/ready)
+✓ Automated Unit & API Integration Tests (test_observability.py)
+
+Deliverable
+
+Hardened Production Observability & Security Framework Live
+
+---
+
+====================================================
+SESSION 14 (COMPLETED)
+====================================================
+
+Containerization, CI/CD & Production Deployment
+
+Tasks
+
+✓ Multi-stage production backend Dockerfile (Python 3.13-slim, unprivileged user, healthcheck)
+✓ Multi-stage production frontend Dockerfile (Next.js 15, Node 20-alpine, unprivileged user)
+✓ Full-stack docker-compose.yml (PostgreSQL + pgvector, Redis, Neo4j, Qdrant, MinIO, Backend, Worker, Frontend)
+✓ Production Nginx reverse proxy & rate limiting configuration (deploy/nginx/nginx.conf & docker-compose.prod.yml)
+✓ Automated GitHub Actions CI workflow (.github/workflows/ci.yml)
+✓ Continuous Deployment workflow (.github/workflows/deploy.yml)
+✓ Production deployment automation script (scripts/deploy.sh)
+
+Deliverable
+
+Production-Ready Containerized Deployment & Automated CI/CD Live
+
+---
+
+====================================================
+PROJECT STATUS: ALL SESSIONS & ROADMAP COMPLETE (1.0)
+====================================================
 
 Deliverable
 

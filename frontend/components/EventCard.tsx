@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { EventSummary } from '@/lib/types';
-import { Clock, CheckCircle2, AlertCircle, Layers } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Layers, BookOpen } from 'lucide-react';
 
 interface EventCardProps {
   event: EventSummary;
@@ -60,6 +60,18 @@ export default function EventCard({ event }: EventCardProps) {
             <Layers className="w-3.5 h-3.5 text-slate-400" />
             <span>{event.grouping_status}</span>
           </span>
+
+          {/* Story Badge — shown when event is part of a narrative */}
+          {event.grouping_status === 'GROUPED' && event.primary_story_id && (
+            <Link
+              href={`/stories/${event.primary_story_id}`}
+              className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <BookOpen className="w-3 h-3" />
+              <span>Part of a Story</span>
+            </Link>
+          )}
         </div>
 
         {/* Title */}

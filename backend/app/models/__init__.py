@@ -10,6 +10,7 @@ from app.models.event import Event
 from app.models.timeline import TimelineEntry
 from app.models.verification import Verification, Vote
 from app.models.entity import Entity, EventEntity
+from app.models.relationship import EventRelationship
 
 __all__ = [
     "Base",
@@ -28,5 +29,6 @@ __all__ = [
     "Vote",
     "Entity",
     "EventEntity",
+    "EventRelationship",
 ]
 

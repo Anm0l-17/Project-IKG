@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
+from typing import Optional, List
 from sqlalchemy import String, Text, Float, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.postgres import Base
+from app.db.types import VectorType
 from app.models.base import TimestampMixin
 
 
@@ -27,6 +29,7 @@ class Event(Base, TimestampMixin):
     summary: Mapped[str] = mapped_column(Text, nullable=True)
     knowledge_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False, index=True)
     importance_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    embedding: Mapped[Optional[List[float]]] = mapped_column(VectorType(384), nullable=True)
 
     grouping_status: Mapped[str] = mapped_column(String(20), default="UNGROUPED", nullable=False, index=True)
     # Grouping Status: UNGROUPED | GROUPED
@@ -52,4 +55,16 @@ class Event(Base, TimestampMixin):
     timeline_entries: Mapped[list["TimelineEntry"]] = relationship("TimelineEntry", back_populates="event", cascade="all, delete-orphan")
     verification: Mapped["Verification"] = relationship("Verification", back_populates="event", uselist=False, cascade="all, delete-orphan")
     event_entities: Mapped[list["EventEntity"]] = relationship("EventEntity", back_populates="event", cascade="all, delete-orphan")
+    outgoing_relationships: Mapped[list["EventRelationship"]] = relationship(
+        "EventRelationship",
+        foreign_keys="[EventRelationship.source_event_id]",
+        back_populates="source_event",
+        cascade="all, delete-orphan"
+    )
+    incoming_relationships: Mapped[list["EventRelationship"]] = relationship(
+        "EventRelationship",
+        foreign_keys="[EventRelationship.target_event_id]",
+        back_populates="target_event",
+        cascade="all, delete-orphan"
+    )
 

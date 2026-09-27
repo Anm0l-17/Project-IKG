@@ -2,8 +2,9 @@
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
-import { fetchEventById } from '@/lib/api';
-import { EventDetail } from '@/lib/types';
+import { fetchEventById, fetchEventGraph } from '@/lib/api';
+import { EventDetail, GraphResponse } from '@/lib/types';
+import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer';
 import {
   ArrowLeft,
   Clock,
@@ -13,6 +14,7 @@ import {
   FileText,
   Calendar,
   Sparkles,
+  Network,
 } from 'lucide-react';
 
 interface EventDetailPageProps {
@@ -24,6 +26,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   const eventId = resolvedParams.id;
 
   const [event, setEvent] = useState<EventDetail | null>(null);
+  const [graphData, setGraphData] = useState<GraphResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,8 +35,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
       setLoading(true);
       setError(null);
       try {
-        const data = await fetchEventById(eventId);
-        setEvent(data);
+        const [eventRes, graphRes] = await Promise.all([
+          fetchEventById(eventId),
+          fetchEventGraph(eventId).catch(() => null),
+        ]);
+        setEvent(eventRes);
+        setGraphData(graphRes);
       } catch (err: any) {
         setError(err.message || 'Failed to load event details.');
       } finally {
@@ -147,6 +154,29 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
           </div>
         </div>
       </div>
+
+      {/* Knowledge Graph Subgraph Section */}
+      {graphData && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Network className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-bold text-slate-900">Connected Knowledge Network</h2>
+            </div>
+            <Link
+              href="/graph"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              Explore Full Graph &rarr;
+            </Link>
+          </div>
+          <KnowledgeGraphViewer
+            graph={graphData}
+            height="460px"
+            centralEventId={event.id}
+          />
+        </div>
+      )}
 
       {/* Chronological Timeline Section */}
       <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-6">
