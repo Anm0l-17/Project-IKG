@@ -54,19 +54,19 @@ async def test_task_infer_relationships_execution(db_session: AsyncSession):
     await db_session.commit()
 
     # Empty event id returns 0
-    res_empty = await task_infer_relationships(None, event_id="")
+    res_empty = await task_infer_relationships(None, event_id="", db=db_session)
     assert res_empty["relationships_created"] == 0
 
     # Execute for created event
-    res = await task_infer_relationships(None, event_id=event.id)
+    res = await task_infer_relationships(None, event_id=event.id, db=db_session)
     assert res["event_id"] == event.id
     assert "relationships_created" in res
 
 
 @pytest.mark.asyncio
 async def test_task_verification_and_backfill_runs(db_session: AsyncSession):
-    v_res = await task_verification_consensus(None)
+    v_res = await task_verification_consensus(None, db=db_session)
     assert "expired_events_count" in v_res
 
-    b_res = await task_backfill_embeddings(None, batch_size=10)
+    b_res = await task_backfill_embeddings(None, batch_size=10, db=db_session)
     assert "embeddings_backfilled" in b_res

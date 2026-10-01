@@ -115,9 +115,11 @@ class EntityExtractionService:
                     if ent.label_ in ("PERSON", "ORG", "GPE"):
                         name = ent.text.strip()
                         if len(name) > 2 and name not in entities:
-                            etype = (
-                                "Person" if ent.label_ == "PERSON" else "Organization"
-                            )
+                            etype = {
+                                "PERSON": "Person",
+                                "ORG": "Organization",
+                                "GPE": "Location",
+                            }[ent.label_]
                             entities[name] = ExtractedEntityDTO(
                                 canonical_name=name, entity_type=etype, confidence=0.85
                             )

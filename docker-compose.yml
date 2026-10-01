@@ -37,10 +37,14 @@ services:
     networks:
       - ikg-network
 
+  # --- Future / Optional Roadmap Services (Not active in v0.1 runtime) ---
+  # Release 1.0: Neo4j graph projections
   neo4j:
     image: neo4j:5-community
     container_name: ikg-neo4j
     restart: always
+    profiles:
+      - future-infra
     environment:
       NEO4J_AUTH: neo4j/ikg_password
       NEO4J_PLUGINS: '["apoc"]'
@@ -57,10 +61,13 @@ services:
     networks:
       - ikg-network
 
+  # Optional vector database (Beta 0.5 uses PostgreSQL pgvector)
   qdrant:
     image: qdrant/qdrant:latest
     container_name: ikg-qdrant
     restart: always
+    profiles:
+      - future-infra
     ports:
       - "6333:6333" # HTTP API
       - "6334:6334" # gRPC

@@ -184,13 +184,14 @@ class GraphEngine:
                         inferred.append(rel)
                         existing_pairs.add(pair)
 
-            # Rule 2: CAUSES (Causal phrasing + Entity Overlap >= 0.60 + Semantic Relevance >= 0.85)
+            # Rule 2: CAUSES (Causal phrasing + Entity Overlap >= 0.60 + Semantic Relevance >= 0.85 or fallback)
             has_causal = self._has_causal_phrasing(
                 event_text
             ) or self._has_causal_phrasing(cand_text)
             if has_causal and jaccard >= 0.60:
                 semantic_score = self._compute_semantic_score(event_text, cand_text)
-                if semantic_score >= 0.85:
+                min_semantic = 0.85 if self._cross_encoder else 0.35
+                if semantic_score >= min_semantic:
                     # Direction: earlier is cause, later is effect
                     if event.first_seen <= cand.first_seen:
                         source_id, target_id = event.id, cand.id
@@ -201,11 +202,16 @@ class GraphEngine:
 
                     pair = (source_id, target_id, "CAUSES")
                     if pair not in existing_pairs:
+                        confidence_val = (
+                            round(min(semantic_score, 0.99), 2)
+                            if self._cross_encoder
+                            else 0.85
+                        )
                         rel = EventRelationship(
                             source_event_id=source_id,
                             target_event_id=target_id,
                             relationship_type="CAUSES",
-                            confidence=round(min(semantic_score, 0.99), 2),
+                            confidence=confidence_val,
                             evidence_count=1,
                             status="VALIDATED",
                             reasoning=f"Causal inference (overlap={jaccard:.2f}, score={semantic_score:.2f}): '{c_title}' triggered or led to '{e_title}'.",

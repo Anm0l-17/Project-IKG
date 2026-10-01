@@ -29,8 +29,8 @@ async def test_article_with_ministry_generates_event_and_evidence(
     article = Article(
         source_id=source.id,
         url="http://test.com/1",
-        headline="Ministry of Education announces new policy",
-        summary="The Ministry of Education has announced a new educational policy.",
+        headline="Ministry of Education introduces National Education Policy Bill",
+        summary="The Ministry of Education has introduced a new education bill.",
         published_at=datetime.now(UTC),
         scraped_at=datetime.now(UTC),
         clean_text="Clean text",

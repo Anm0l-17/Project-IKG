@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -28,14 +28,14 @@ class Article(Base, TimestampMixin):
     headline: Mapped[str] = mapped_column(String(512), nullable=False)
     author: Mapped[str] = mapped_column(String(255), nullable=True)
     published_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
     scraped_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
 
     raw_html_path: Mapped[str] = mapped_column(String(255), nullable=True)
-    clean_text: Mapped[str] = mapped_column(Text, nullable=False)
+    clean_text: Mapped[str] = mapped_column(Text, default="", nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=True)
     language: Mapped[str] = mapped_column(String(10), default="en", nullable=False)
     hash: Mapped[str] = mapped_column(

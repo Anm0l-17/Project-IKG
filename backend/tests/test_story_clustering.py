@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -132,6 +134,9 @@ async def test_story_verified_with_two_independent_sources(db_session: AsyncSess
         url="https://gktoday.in/budget-infra",
         headline="Budget 2026 infra allocation",
         hash="hash_art1",
+        published_at=datetime.now(UTC),
+        scraped_at=datetime.now(UTC),
+        clean_text="Budget 2026 infrastructure allocation text",
     )
     art2 = Article(
         source_id=source2.id,
@@ -139,6 +144,9 @@ async def test_story_verified_with_two_independent_sources(db_session: AsyncSess
         url="https://thehindu.com/budget-tax",
         headline="Budget 2026 tax slabs",
         hash="hash_art2",
+        published_at=datetime.now(UTC),
+        scraped_at=datetime.now(UTC),
+        clean_text="Budget 2026 income tax slab details text",
     )
     db_session.add_all([art1, art2])
     await db_session.commit()

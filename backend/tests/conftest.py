@@ -7,7 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.db.postgres import Base, get_db
 from app.main import app
 
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+import os
+
+# Default to in-memory SQLite for fast local unit tests.
+# Set TEST_DATABASE_URL=postgresql+asyncpg://ikg_user:ikg_password@localhost:5432/ikg_test
+# to run the PostgreSQL/pgvector integration profile in CI or local container.
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "sqlite+aiosqlite:///:memory:")
 
 
 @pytest_asyncio.fixture(scope="function")

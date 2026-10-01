@@ -15,15 +15,11 @@ def generate_uuid7() -> str:
     rand_a = uuid.uuid4().int & 0xFFF
     rand_b = uuid.uuid4().int & 0x3FFFFFFFFFFFFFFF
 
-    time_high = (timestamp_ms >> 16) & 0xFFFFFFFF
-    time_mid = timestamp_ms & 0xFFFF
-    time_hi_and_version = 0x7000 | (time_mid & 0x0FFF)
-    clock_seq_hi_and_reserved = 0x8000 | rand_a
-
     uuid_int = (
-        (time_high << 96)
-        | (time_hi_and_version << 80)
-        | (clock_seq_hi_and_reserved << 64)
+        (timestamp_ms << 80)
+        | (0x7 << 76)
+        | (rand_a << 64)
+        | (0b10 << 62)
         | rand_b
     )
     return str(uuid.UUID(int=uuid_int))

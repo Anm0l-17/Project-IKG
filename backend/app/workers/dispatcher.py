@@ -1,11 +1,9 @@
 import asyncio
-import logging
 from collections.abc import Callable
 from typing import Any
 
 from app.core.config import settings
-
-logger = logging.getLogger(__name__)
+from app.core.logger import logger
 
 
 class TaskDispatcher:

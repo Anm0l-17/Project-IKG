@@ -126,6 +126,11 @@ class StoryClusteringService:
         s_res = await self.db.execute(stories_stmt)
         existing_stories = s_res.scalars().all()
 
+        # Map story_id to list of events for in-memory checks without lazy-loading
+        story_events_map: dict[str, list[Event]] = {
+            s.id: list(s.events) for s in existing_stories
+        }
+
         grouped_count = 0
         stories_created = 0
         stories_updated_set: set[str] = set()
@@ -145,7 +150,7 @@ class StoryClusteringService:
 
             if rel_event_ids:
                 for story in existing_stories:
-                    story_event_ids = {e.id for e in story.events}
+                    story_event_ids = {e.id for e in story_events_map.get(story.id, [])}
                     if rel_event_ids & story_event_ids:
                         matched_story = story
                         break
@@ -156,17 +161,17 @@ class StoryClusteringService:
                     s for s in existing_stories if s.topic_id == event.topic_id
                 ]
                 for story in topic_stories:
-                    for s_ev in story.events:
+                    for s_ev in story_events_map.get(story.id, []):
                         s_entities = {ee.entity_id for ee in s_ev.event_entities}
                         shared = event_entities & s_entities
-                        if len(shared) >= 2:
+                        if len(shared) >= 1:
                             matched_story = story
                             break
 
                         s_text = f"{s_ev.canonical_title} {s_ev.summary or ''}"
                         s_vec = embedding_service.generate_embedding(s_text)
                         sim = embedding_service.cosine_similarity(event_vec, s_vec)
-                        if sim >= 0.75:
+                        if sim >= 0.70:
                             matched_story = story
                             break
                     if matched_story:
@@ -176,7 +181,7 @@ class StoryClusteringService:
             if matched_story:
                 event.primary_story_id = matched_story.id
                 event.grouping_status = "GROUPED"
-                matched_story.events.append(event)
+                story_events_map.setdefault(matched_story.id, []).append(event)
                 grouped_count += 1
                 stories_updated_set.add(matched_story.id)
             else:
@@ -197,7 +202,7 @@ class StoryClusteringService:
                         sib_vec = embedding_service.generate_embedding(sib_text)
                         sim = embedding_service.cosine_similarity(event_vec, sib_vec)
 
-                        if len(shared) >= 2 or sim >= 0.75:
+                        if len(shared) >= 1 or sim >= 0.70:
                             # Create new Story narrative
                             base_title = event.canonical_title.split(":")[0].strip()
                             new_story = Story(
@@ -215,8 +220,8 @@ class StoryClusteringService:
                             sib.primary_story_id = new_story.id
                             sib.grouping_status = "GROUPED"
 
-                            new_story.events = [event, sib]
                             existing_stories.append(new_story)
+                            story_events_map[new_story.id] = [event, sib]
                             grouped_count += 2
                             stories_created += 1
                             stories_updated_set.add(new_story.id)

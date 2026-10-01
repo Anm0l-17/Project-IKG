@@ -31,7 +31,14 @@ class Event(Base, TimestampMixin):
         String(36), ForeignKey("stories.id"), nullable=True, index=True
     )
     canonical_article_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("articles.id"), nullable=True, index=True
+        String(36),
+        ForeignKey(
+            "articles.id",
+            use_alter=True,
+            name="fk_events_canonical_article_id",
+        ),
+        nullable=True,
+        index=True,
     )
 
     category: Mapped[str] = mapped_column(String(50), nullable=False, index=True)

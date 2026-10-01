@@ -1,3 +1,5 @@
+import uuid
+
 from app.models.base import generate_uuid7
 from app.models.claim import Claim
 from app.models.domain import Domain
@@ -14,6 +16,8 @@ def test_uuid7_generator():
     assert len(uuid1) == 36
     assert len(uuid2) == 36
     assert uuid1 != uuid2
+    assert uuid.UUID(uuid1).version == 7
+    assert uuid.UUID(uuid1).variant == uuid.RFC_4122
 
 
 def test_source_model_instantiation():

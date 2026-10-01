@@ -41,16 +41,16 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-# Configure CORS
-allow_origins = (
-    ["http://localhost:3000", "http://127.0.0.1:3000"]
-    if settings.APP_ENV == "development"
-    else []
-)
+# Configure CORS. Production must explicitly opt in to each trusted origin.
+allow_origins = settings.ALLOWED_ORIGINS
+if settings.APP_ENV == "development" and not allow_origins:
+    allow_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+if settings.APP_ENV != "development" and not allow_origins:
+    raise RuntimeError("ALLOWED_ORIGINS must be configured outside development.")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins if allow_origins else ["*"],
-    allow_credentials=True if allow_origins else False,
+    allow_origins=allow_origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

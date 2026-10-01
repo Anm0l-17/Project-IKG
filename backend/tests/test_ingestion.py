@@ -138,11 +138,15 @@ async def test_pipeline_fuzzy_time_bound(db_session: AsyncSession):
     assert saved[0].url == "http://test.com/new"
 
 
-def test_ingestion_scheduler_lifecycle():
+@pytest.mark.asyncio
+async def test_ingestion_scheduler_lifecycle():
+    import asyncio
+
     from app.workers.scheduler import IngestionScheduler
 
     scheduler = IngestionScheduler()
     scheduler.start(interval_minutes=60)
     assert scheduler.scheduler.running is True
     scheduler.shutdown()
+    await asyncio.sleep(0)
     assert scheduler.scheduler.running is False

@@ -1,5 +1,6 @@
+from app.db.postgres import Base
 from app.models.article import Article
-from app.models.base import Base, TimestampMixin, generate_uuid7
+from app.models.base import TimestampMixin, generate_uuid7
 from app.models.claim import Claim
 from app.models.domain import Domain
 from app.models.entity import Entity, EventEntity

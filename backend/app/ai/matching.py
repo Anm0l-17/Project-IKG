@@ -1,6 +1,6 @@
 import logging
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.ai.embeddings import embedding_service
 from app.models.article import Article
@@ -11,11 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 class MatchResultDTO(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     is_match: bool
     event: Event | None = None
     similarity_score: float = 0.0
-    stage: str = "NONE"  # "STAGE1_VECTOR" | "STAGE2_CROSS_ENCODER" | "FUZZY_FALLBACK"
-
+    stage: str = "NONE"
 
 class CandidateMatchingService:
     """

@@ -81,24 +81,28 @@ class CandidateEventService:
 
     def _classify_domain(self, text: str) -> str:
         text_lower = text.lower()
-        if any(
-            w in text_lower
-            for w in ["parliament", "lok sabha", "rajya sabha", "bill", "act", "mou"]
+
+        def has_any_term(terms: list[str]) -> bool:
+            for term in terms:
+                pattern = rf"\b{re.escape(term)}\b"
+                if re.search(pattern, text_lower):
+                    return True
+            return False
+
+        if has_any_term(
+            ["parliament", "lok sabha", "rajya sabha", "bill", "act", "mou"]
         ):
             return DomainCategory.PARLIAMENT.value
-        if any(
-            w in text_lower
-            for w in ["gdp", "economy", "rbi", "inflation", "tax", "budget", "finance"]
+        if has_any_term(
+            ["gdp", "economy", "rbi", "inflation", "tax", "budget", "finance"]
         ):
             return DomainCategory.ECONOMICS.value
-        if any(
-            w in text_lower
-            for w in ["trade", "export", "import", "fta", "tariff", "commerce"]
+        if has_any_term(
+            ["trade", "export", "import", "fta", "tariff", "commerce"]
         ):
             return DomainCategory.TRADE.value
-        if any(
-            w in text_lower
-            for w in [
+        if has_any_term(
+            [
                 "army",
                 "navy",
                 "air force",
@@ -109,9 +113,8 @@ class CandidateEventService:
             ]
         ):
             return DomainCategory.DEFENCE.value
-        if any(
-            w in text_lower
-            for w in [
+        if has_any_term(
+            [
                 "bilateral",
                 "summit",
                 "diplomacy",
@@ -152,8 +155,6 @@ class CandidateEventService:
         await self.db.flush()  # Flush to get event id
 
         # Initialize Verification state
-        from app.services.events.verification import VerificationEngine
-
         v_engine = VerificationEngine(self.db)
         await v_engine.initialize_verification_for_event(event, article)
 

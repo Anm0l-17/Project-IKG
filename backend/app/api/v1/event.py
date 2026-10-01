@@ -147,7 +147,7 @@ async def list_events(
     return [EventSummaryResponse.model_validate(ev) for ev in events]
 
 
-@router.get("/{id}/graph", response_model=GraphResponse)
+@router.get("/events/{id}/graph", response_model=GraphResponse)
 async def get_event_graph_subgraph(
     id: str,
     depth: int = Query(1, ge=1, le=3, description="Subgraph traversal depth"),

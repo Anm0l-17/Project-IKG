@@ -11,7 +11,7 @@ class VectorType(TypeDecorator):
     Default dimension is 384 (all-MiniLM-L6-v2).
     """
 
-    impl = JSON
+    impl = JSON(none_as_null=True)
     cache_ok = True
 
     def __init__(self, dimensions: int = 384, *args: Any, **kwargs: Any):

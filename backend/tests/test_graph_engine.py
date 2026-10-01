@@ -68,7 +68,7 @@ async def test_precedes_inference_within_same_story(db_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_causes_inference_with_causal_cue_and_entity_overlap(
-    db_session: AsyncSession,
+    db_session: AsyncSession, monkeypatch: pytest.MonkeyPatch
 ):
     domain = Domain(name="Economics", slug="economics")
     db_session.add(domain)
@@ -110,6 +110,9 @@ async def test_causes_inference_with_causal_cue_and_entity_overlap(
     await db_session.commit()
 
     engine = GraphEngine(db_session)
+    # Keep the rule test deterministic when the optional CrossEncoder is absent.
+    engine._cross_encoder = object()
+    monkeypatch.setattr(engine, "_compute_semantic_score", lambda *_: 0.90)
     inferred = await engine.infer_relationships_for_event(event2.id)
 
     causes_rel = next((r for r in inferred if r.relationship_type == "CAUSES"), None)

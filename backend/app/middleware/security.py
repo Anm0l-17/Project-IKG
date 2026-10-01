@@ -29,7 +29,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 class RateLimiterMiddleware(BaseHTTPMiddleware):
     """
     In-memory sliding window rate limiter per client IP address.
-    Default: 120 requests per minute per IP.
+    The application configures the active request limit.
     Excludes /health, /ready, and /docs from strict throttling.
     """
 
@@ -60,9 +60,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         self.request_records[client_ip] = records
 
         if len(records) >= self.max_requests:
-            logger.warning(
-                "Rate limit exceeded for client IP", client_ip=client_ip, path=path
-            )
+            logger.warning("Rate limit exceeded for client IP %s at %s", client_ip, path)
             return JSONResponse(
                 status_code=429,
                 content={

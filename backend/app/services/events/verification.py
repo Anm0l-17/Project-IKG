@@ -64,7 +64,10 @@ class VerificationEngine:
         # Fetch PENDING events from the last 10 days
         stmt = (
             select(Event)
-            .where(Event.verification_status == VerificationStatus.PENDING.value)
+            .where(
+                Event.verification_status == VerificationStatus.PENDING.value,
+                Event.created_at >= datetime.now(UTC) - timedelta(days=10),
+            )
             .order_by(Event.created_at.desc())
             .limit(200)
         )

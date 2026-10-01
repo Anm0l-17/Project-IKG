@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"
     SECRET_KEY: str = "change-this-in-production-secret-key-32-bytes-min"
+    ALLOWED_ORIGINS: list[str] = []
 
     # PostgreSQL Database
     DATABASE_URL: str = (
@@ -19,13 +20,14 @@ class Settings(BaseSettings):
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
 
-    # Neo4j Graph Database
-    NEO4J_URI: str = "bolt://localhost:7687"
+    # Optional / Future Roadmap: Neo4j Graph Database (Release 1.0)
+    # v0.1 stores relationships in PostgreSQL; Neo4j is not wired to runtime
+    NEO4J_URI: str | None = None
     NEO4J_USER: str = "neo4j"
     NEO4J_PASSWORD: str = "ikg_password"
 
-    # Qdrant Vector Database
-    QDRANT_URL: str = "http://localhost:6333"
+    # Optional / Future Roadmap: Qdrant Vector Database (v0.1 uses in-process embeddings; Beta 0.5 uses pgvector)
+    QDRANT_URL: str | None = None
 
     # Redis Cache & Task Queue
     REDIS_URL: str = "redis://localhost:6379/0"

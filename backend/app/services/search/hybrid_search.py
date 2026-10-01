@@ -182,10 +182,14 @@ class HybridSearchService:
                     text = f"{ev.canonical_title}. {ev.summary or ''}"
                     ev_vec = embedding_service.generate_embedding(text)
                 sim = embedding_service.cosine_similarity(query_vector, ev_vec)
-                # Cosine similarity in MiniLM is [-1, 1], normalize to [0, 1]
-                semantic_score = max(
-                    0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim)
-                )
+                if embedding_service.model is None:
+                    # In sparse fallback embedding, scale dot-product similarity
+                    semantic_score = min(1.0, max(0.0, sim * 2.5))
+                else:
+                    # Cosine similarity in MiniLM is [-1, 1], normalize to [0, 1]
+                    semantic_score = max(
+                        0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim)
+                    )
 
             # 3. Combined Final Relevance Score
             if mode == "lexical":
@@ -215,7 +219,7 @@ class HybridSearchService:
                     match_type = "RELEVANCE"
 
             # Filter out near-zero noise
-            threshold = 0.15 if mode == "lexical" else 0.30
+            threshold = 0.15 if mode in ("lexical", "semantic") else 0.25
             if final_score < threshold:
                 continue
 
@@ -267,8 +271,15 @@ class HybridSearchService:
         res = await self.session.execute(stmt)
         events = res.scalars().all()
 
+        target_events = [ev for ev in events if not ev.embedding]
+        if not target_events:
+            # Fallback if dialect stored JSON 'null' string
+            all_stmt = select(Event).limit(batch_size)
+            all_res = await self.session.execute(all_stmt)
+            target_events = [ev for ev in all_res.scalars().all() if not ev.embedding]
+
         updated_count = 0
-        for ev in events:
+        for ev in target_events:
             text = f"{ev.canonical_title}. {ev.summary or ''}"
             vec = embedding_service.generate_embedding(text)
             ev.embedding = vec
