@@ -1,14 +1,13 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres import get_db
-from app.services.search.hybrid_search import HybridSearchService
 from app.schemas.search import (
+    BackfillEmbeddingsResponse,
     SearchResponse,
     SearchResultItem,
-    BackfillEmbeddingsResponse,
 )
+from app.services.search.hybrid_search import HybridSearchService
 
 router = APIRouter()
 
@@ -16,10 +15,14 @@ router = APIRouter()
 @router.get("/search", response_model=SearchResponse)
 async def search_events(
     q: str = Query(..., min_length=1, description="Search query string"),
-    mode: str = Query("hybrid", description="Search mode: hybrid, semantic, or lexical"),
-    category: Optional[str] = Query(None, description="Filter by event category"),
-    verification_status: Optional[str] = Query(None, description="Filter by verification status"),
-    topic_id: Optional[str] = Query(None, description="Filter by topic ID"),
+    mode: str = Query(
+        "hybrid", description="Search mode: hybrid, semantic, or lexical"
+    ),
+    category: str | None = Query(None, description="Filter by event category"),
+    verification_status: str | None = Query(
+        None, description="Filter by verification status"
+    ),
+    topic_id: str | None = Query(None, description="Filter by topic ID"),
     limit: int = Query(20, ge=1, le=100, description="Max results to return"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     db: AsyncSession = Depends(get_db),

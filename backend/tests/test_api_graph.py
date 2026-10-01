@@ -3,8 +3,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.domain import Domain
-from app.models.event import Event
 from app.models.entity import Entity, EventEntity
+from app.models.event import Event
 
 
 @pytest.mark.asyncio
@@ -36,7 +36,12 @@ async def test_get_event_subgraph_api(client: AsyncClient, db_session: AsyncSess
     db_session.add(entity)
     await db_session.flush()
 
-    ee = EventEntity(event_id=event.id, entity_id=entity.id, relationship_type="MENTIONS", confidence=0.95)
+    ee = EventEntity(
+        event_id=event.id,
+        entity_id=entity.id,
+        relationship_type="MENTIONS",
+        confidence=0.95,
+    )
     db_session.add(ee)
     await db_session.commit()
 

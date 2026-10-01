@@ -1,15 +1,15 @@
 import logging
 import re
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
-from sqlalchemy import select, or_, and_, desc
+from typing import Any
+
+from sqlalchemy import and_, desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.ai.embeddings import embedding_service
 from app.models.event import Event
 from app.models.topic import Topic
-from app.models.domain import Domain
-from app.ai.embeddings import embedding_service
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,9 @@ class HybridSearchService:
         self.session = session
 
     @staticmethod
-    def _compute_lexical_score(query: str, title: str, summary: Optional[str]) -> Tuple[float, Optional[str]]:
+    def _compute_lexical_score(
+        query: str, title: str, summary: str | None
+    ) -> tuple[float, str | None]:
         """
         Calculates lexical relevance score based on token overlap, title exactness, and phrase hits.
         Returns (lexical_score: float [0..1], highlight_snippet: Optional[str]).
@@ -86,14 +88,14 @@ class HybridSearchService:
         self,
         query: str,
         mode: str = "hybrid",
-        category: Optional[str] = None,
-        verification_status: Optional[str] = None,
-        topic_id: Optional[str] = None,
-        from_date: Optional[datetime] = None,
-        to_date: Optional[datetime] = None,
+        category: str | None = None,
+        verification_status: str | None = None,
+        topic_id: str | None = None,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Executes hybrid, semantic, or lexical search across Events.
         """
@@ -111,11 +113,8 @@ class HybridSearchService:
             }
 
         # Build candidate query filters
-        stmt = (
-            select(Event)
-            .options(
-                selectinload(Event.topic).selectinload(Topic.domain),
-            )
+        stmt = select(Event).options(
+            selectinload(Event.topic).selectinload(Topic.domain),
         )
 
         conditions = []
@@ -166,11 +165,13 @@ class HybridSearchService:
         if mode in ("semantic", "hybrid"):
             query_vector = embedding_service.generate_embedding(query_cleaned)
 
-        scored_results: List[Dict[str, Any]] = []
+        scored_results: list[dict[str, Any]] = []
 
         for ev in candidates:
             # 1. Lexical Scoring
-            lexical_score, snippet = self._compute_lexical_score(query_cleaned, ev.canonical_title, ev.summary)
+            lexical_score, snippet = self._compute_lexical_score(
+                query_cleaned, ev.canonical_title, ev.summary
+            )
 
             # 2. Semantic Scoring
             semantic_score = 0.0
@@ -182,7 +183,9 @@ class HybridSearchService:
                     ev_vec = embedding_service.generate_embedding(text)
                 sim = embedding_service.cosine_similarity(query_vector, ev_vec)
                 # Cosine similarity in MiniLM is [-1, 1], normalize to [0, 1]
-                semantic_score = max(0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim))
+                semantic_score = max(
+                    0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim)
+                )
 
             # 3. Combined Final Relevance Score
             if mode == "lexical":
@@ -216,27 +219,32 @@ class HybridSearchService:
             if final_score < threshold:
                 continue
 
-            scored_results.append({
-                "id": ev.id,
-                "title": ev.canonical_title,
-                "slug": ev.slug,
-                "category": ev.category,
-                "subcategory": ev.subcategory,
-                "summary": ev.summary,
-                "highlight_snippet": snippet or (ev.summary[:150] if ev.summary else None),
-                "knowledge_score": ev.knowledge_score,
-                "verification_status": ev.verification_status,
-                "grouping_status": ev.grouping_status,
-                "primary_story_id": ev.primary_story_id,
-                "topic_name": ev.topic.name if ev.topic else None,
-                "domain_name": ev.topic.domain.name if ev.topic and ev.topic.domain else None,
-                "first_seen": ev.first_seen.isoformat(),
-                "last_updated": ev.last_updated.isoformat(),
-                "relevance_score": round(final_score, 4),
-                "lexical_score": round(lexical_score, 4),
-                "semantic_score": round(semantic_score, 4),
-                "match_type": match_type,
-            })
+            scored_results.append(
+                {
+                    "id": ev.id,
+                    "title": ev.canonical_title,
+                    "slug": ev.slug,
+                    "category": ev.category,
+                    "subcategory": ev.subcategory,
+                    "summary": ev.summary,
+                    "highlight_snippet": snippet
+                    or (ev.summary[:150] if ev.summary else None),
+                    "knowledge_score": ev.knowledge_score,
+                    "verification_status": ev.verification_status,
+                    "grouping_status": ev.grouping_status,
+                    "primary_story_id": ev.primary_story_id,
+                    "topic_name": ev.topic.name if ev.topic else None,
+                    "domain_name": ev.topic.domain.name
+                    if ev.topic and ev.topic.domain
+                    else None,
+                    "first_seen": ev.first_seen.isoformat(),
+                    "last_updated": ev.last_updated.isoformat(),
+                    "relevance_score": round(final_score, 4),
+                    "lexical_score": round(lexical_score, 4),
+                    "semantic_score": round(semantic_score, 4),
+                    "match_type": match_type,
+                }
+            )
 
         # Sort by relevance_score descending
         scored_results.sort(key=lambda r: r["relevance_score"], reverse=True)
@@ -255,11 +263,7 @@ class HybridSearchService:
         """
         Backfills vector embeddings for events that have null embeddings.
         """
-        stmt = (
-            select(Event)
-            .where(Event.embedding.is_(None))
-            .limit(batch_size)
-        )
+        stmt = select(Event).where(Event.embedding.is_(None)).limit(batch_size)
         res = await self.session.execute(stmt)
         events = res.scalars().all()
 

@@ -1,6 +1,7 @@
 import json
-from typing import List, Optional, Any
-from sqlalchemy import TypeDecorator, JSON
+from typing import Any
+
+from sqlalchemy import JSON, TypeDecorator
 
 
 class VectorType(TypeDecorator):
@@ -9,6 +10,7 @@ class VectorType(TypeDecorator):
     Compatible with PostgreSQL and SQLite (using JSON serialization).
     Default dimension is 384 (all-MiniLM-L6-v2).
     """
+
     impl = JSON
     cache_ok = True
 
@@ -16,14 +18,14 @@ class VectorType(TypeDecorator):
         super().__init__(*args, **kwargs)
         self.dimensions = dimensions
 
-    def process_bind_param(self, value: Optional[List[float]], dialect: Any) -> Optional[Any]:
+    def process_bind_param(self, value: list[float] | None, dialect: Any) -> Any | None:
         if value is None:
             return None
         if isinstance(value, (list, tuple)):
             return [float(x) for x in value]
         return value
 
-    def process_result_value(self, value: Any, dialect: Any) -> Optional[List[float]]:
+    def process_result_value(self, value: Any, dialect: Any) -> list[float] | None:
         if value is None:
             return None
         if isinstance(value, str):

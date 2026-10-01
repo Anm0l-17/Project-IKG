@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, status, Response
+from datetime import UTC, datetime
+from typing import Any
+
+from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
-from typing import Dict, Any, Optional
-from datetime import datetime, timezone
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,8 +24,8 @@ class HealthResponse(BaseModel):
 class ReadinessResponse(BaseModel):
     status: str
     timestamp: str
-    database: Dict[str, Any]
-    task_queue: Dict[str, Any]
+    database: dict[str, Any]
+    task_queue: dict[str, Any]
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -36,7 +37,7 @@ async def health_check():
         status="healthy",
         version="0.1.0",
         environment=settings.APP_ENV,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         llm_provider=settings.LLM_PROVIDER,
     )
 
@@ -69,7 +70,7 @@ async def readiness_check(
 
     return ReadinessResponse(
         status=overall_status,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         database=db_status,
         task_queue=queue_status,
     )

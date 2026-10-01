@@ -27,9 +27,9 @@ def is_title_duplicate(title_a: str, title_b: str, threshold: float = 0.85) -> b
     """
     norm_a = normalize_title(title_a)
     norm_b = normalize_title(title_b)
-    
+
     if norm_a == norm_b:
         return True
-        
+
     ratio = SequenceMatcher(None, norm_a, norm_b).ratio()
     return ratio >= threshold

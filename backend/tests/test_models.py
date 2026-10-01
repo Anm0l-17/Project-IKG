@@ -1,12 +1,11 @@
-import pytest
 from app.models.base import generate_uuid7
-from app.models.source import Source
-from app.models.event import Event
-from app.models.domain import Domain
-from app.models.topic import Topic
-from app.models.story import Story
 from app.models.claim import Claim
+from app.models.domain import Domain
+from app.models.event import Event
 from app.models.evidence import Evidence
+from app.models.source import Source
+from app.models.story import Story
+from app.models.topic import Topic
 
 
 def test_uuid7_generator():
@@ -22,7 +21,7 @@ def test_source_model_instantiation():
         name="GKToday",
         domain="gktoday.in",
         rss_url="https://www.gktoday.in/feed/",
-        is_active=True
+        is_active=True,
     )
     assert source.name == "GKToday"
     assert source.domain == "gktoday.in"
@@ -33,7 +32,7 @@ def test_domain_model_instantiation():
     domain = Domain(
         name="Trade",
         slug="trade",
-        description="Indian Trade Policies and International Commerce"
+        description="Indian Trade Policies and International Commerce",
     )
     assert domain.name == "Trade"
     assert domain.slug == "trade"
@@ -44,7 +43,7 @@ def test_topic_model_instantiation():
         domain_id=generate_uuid7(),
         name="India-UK Trade Relations",
         slug="india-uk-trade-relations",
-        status="ACTIVE"
+        status="ACTIVE",
     )
     assert topic.name == "India-UK Trade Relations"
     assert topic.status == "ACTIVE"
@@ -55,7 +54,7 @@ def test_story_model_instantiation():
         topic_id=generate_uuid7(),
         title="India-UK Free Trade Agreement 2026",
         slug="india-uk-fta-2026",
-        status="PENDING"
+        status="PENDING",
     )
     assert story.title == "India-UK Free Trade Agreement 2026"
     assert story.status == "PENDING"
@@ -68,7 +67,7 @@ def test_event_model_instantiation():
         category="Economics",
         knowledge_score=92.5,
         verification_status="VERIFIED",
-        grouping_status="UNGROUPED"
+        grouping_status="UNGROUPED",
     )
     assert event.canonical_title == "Union Budget 2026 Table in Parliament"
     assert event.category == "Economics"
@@ -82,7 +81,7 @@ def test_event_verification_state_transitions():
         canonical_title="ISRO Launches Climate Monitoring Satellite",
         slug="isro-launches-climate-sat-2026",
         category="Current Affairs",
-        verification_status="PENDING"
+        verification_status="PENDING",
     )
     assert event.verification_status == "PENDING"
 
@@ -101,7 +100,7 @@ def test_event_grouping_status_transitions():
         canonical_title="Defence Ministry Approves Submarine Procurement",
         slug="defence-ministry-approves-submarines-2026",
         category="Defence",
-        grouping_status="UNGROUPED"
+        grouping_status="UNGROUPED",
     )
     assert event.grouping_status == "UNGROUPED"
     assert event.primary_story_id is None
@@ -118,7 +117,7 @@ def test_claim_model_instantiation():
         event_id=generate_uuid7(),
         article_id=generate_uuid7(),
         claim_text="Parliament introduced the tax reform bill on Monday.",
-        confidence=0.95
+        confidence=0.95,
     )
     assert claim.claim_text == "Parliament introduced the tax reform bill on Monday."
     assert claim.confidence == 0.95
@@ -130,7 +129,7 @@ def test_evidence_model_instantiation():
         event_id=generate_uuid7(),
         evidence_type="EVENT_EXISTENCE",
         confidence=1.0,
-        reasoning="Corroborated by independent news coverage"
+        reasoning="Corroborated by independent news coverage",
     )
     assert evidence.evidence_type == "EVENT_EXISTENCE"
     assert evidence.confidence == 1.0

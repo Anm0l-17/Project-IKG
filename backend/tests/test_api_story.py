@@ -2,13 +2,13 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.article import Article
 from app.models.domain import Domain
-from app.models.topic import Topic
-from app.models.story import Story
+from app.models.entity import Entity, EventEntity
 from app.models.event import Event
 from app.models.source import Source
-from app.models.article import Article
-from app.models.entity import Entity, EventEntity
+from app.models.story import Story
+from app.models.topic import Topic
 
 
 @pytest.mark.asyncio
@@ -51,7 +51,12 @@ async def test_list_and_get_story_api(client: AsyncClient, db_session: AsyncSess
     db_session.add(event)
     await db_session.flush()
 
-    src = Source(name="The Hindu", domain="thehindu.com", rss_url="https://thehindu.com/rss", trust_score=0.95)
+    src = Source(
+        name="The Hindu",
+        domain="thehindu.com",
+        rss_url="https://thehindu.com/rss",
+        trust_score=0.95,
+    )
     db_session.add(src)
     await db_session.flush()
 
@@ -109,7 +114,9 @@ async def test_trigger_cluster_api(client: AsyncClient, db_session: AsyncSession
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="Judicial Reforms", slug="judicial-reforms-api")
+    topic = Topic(
+        domain_id=domain.id, name="Judicial Reforms", slug="judicial-reforms-api"
+    )
     db_session.add(topic)
     await db_session.flush()
 

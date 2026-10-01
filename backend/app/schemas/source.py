@@ -1,16 +1,16 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
 
 
 class SourceBase(BaseModel):
     name: str
     domain: str
-    rss_url: Optional[str] = None
+    rss_url: str | None = None
     language: str = "en"
     country: str = "IN"
     trust_score: float = 1.0
-    logo_url: Optional[str] = None
+    logo_url: str | None = None
     is_active: bool = True
 
 

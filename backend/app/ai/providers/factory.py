@@ -1,4 +1,5 @@
 import logging
+
 from app.ai.providers.base import LLMProvider
 from app.ai.providers.gemini import GeminiLLMProvider
 from app.ai.providers.ollama import OllamaLLMProvider
@@ -18,5 +19,7 @@ def get_llm_provider() -> LLMProvider:
     elif provider_type == "ollama":
         return OllamaLLMProvider()
     else:
-        logger.warning(f"Unknown LLM_PROVIDER '{provider_type}'. Defaulting to GeminiLLMProvider.")
+        logger.warning(
+            f"Unknown LLM_PROVIDER '{provider_type}'. Defaulting to GeminiLLMProvider."
+        )
         return GeminiLLMProvider()

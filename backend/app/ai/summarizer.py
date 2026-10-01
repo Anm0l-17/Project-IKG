@@ -1,7 +1,7 @@
 import logging
-from typing import Optional
-from app.models.event import Event
+
 from app.ai.providers.factory import get_llm_provider
+from app.models.event import Event
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +11,7 @@ class SummarizationService:
     Multi-Style Summarization Service for generating Citizen Summaries,
     Executive Intelligence Briefs, and Timeline Summaries based on verified evidence.
     """
+
     def __init__(self):
         self.provider = get_llm_provider()
 
@@ -35,11 +36,17 @@ class SummarizationService:
         timeline_texts = []
         if hasattr(event, "timeline_entries") and event.timeline_entries:
             for entry in event.timeline_entries:
-                timeline_texts.append(f"- {entry.published_at.strftime('%Y-%m-%d')}: {entry.title}")
-        
-        timeline_str = "\n".join(timeline_texts) if timeline_texts else "No attached timeline entries."
+                timeline_texts.append(
+                    f"- {entry.published_at.strftime('%Y-%m-%d')}: {entry.title}"
+                )
+
+        timeline_str = (
+            "\n".join(timeline_texts)
+            if timeline_texts
+            else "No attached timeline entries."
+        )
         context = f"Event: {event.canonical_title}\nTimeline:\n{timeline_str}"
-        
+
         return await self.provider.generate_summary(context, summary_type="timeline")
 
 

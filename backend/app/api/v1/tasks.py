@@ -1,14 +1,14 @@
 import logging
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Query, status
+
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.workers.dispatcher import task_dispatcher
 from app.workers.tasks import (
+    task_backfill_embeddings,
+    task_cluster_stories,
     task_ingest_rss,
     task_verification_consensus,
-    task_cluster_stories,
-    task_backfill_embeddings,
 )
 
 router = APIRouter(prefix="/tasks", tags=["Background Tasks"])
@@ -19,13 +19,16 @@ class TaskStatusResponse(BaseModel):
     queue_status: str
     distributed_queue: str
     backend: str
-    message: Optional[str] = None
-    redis_url: Optional[str] = None
+    message: str | None = None
+    redis_url: str | None = None
 
 
 class TriggerTaskRequest(BaseModel):
-    task_name: str = Field(..., description="Task name: ingest_rss | verification_pass | cluster_stories | backfill_embeddings")
-    limit: Optional[int] = Field(20, description="Optional batch/item limit")
+    task_name: str = Field(
+        ...,
+        description="Task name: ingest_rss | verification_pass | cluster_stories | backfill_embeddings",
+    )
+    limit: int | None = Field(20, description="Optional batch/item limit")
 
 
 class TriggerTaskResponse(BaseModel):

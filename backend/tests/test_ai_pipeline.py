@@ -1,9 +1,8 @@
-import pytest
 from app.ai.embeddings import embedding_service
-from app.ai.ner import entity_extraction_service
 from app.ai.matching import candidate_matching_service
-from app.models.event import Event
+from app.ai.ner import entity_extraction_service
 from app.models.article import Article
+from app.models.event import Event
 
 
 def test_embedding_service_generation_and_similarity():
@@ -48,22 +47,28 @@ def test_entity_extraction_service():
 def test_candidate_matching_service_cascade():
     article = Article(
         headline="Ministry of Defense approves new submarine project",
-        summary="Defense Ministry has cleared a major submarine procurement scheme for Indian Navy."
+        summary="Defense Ministry has cleared a major submarine procurement scheme for Indian Navy.",
     )
 
     event1 = Event(
         canonical_title="Ministry of Defense approves new submarine project",
-        summary="Defense Ministry has cleared a major submarine procurement scheme for Indian Navy."
+        summary="Defense Ministry has cleared a major submarine procurement scheme for Indian Navy.",
     )
 
     event2 = Event(
         canonical_title="Weather forecast for Mumbai coastal areas",
-        summary="Heavy rain forecast for Konkan region."
+        summary="Heavy rain forecast for Konkan region.",
     )
 
-    match_result = candidate_matching_service.match_article_to_events(article, [event1, event2])
+    match_result = candidate_matching_service.match_article_to_events(
+        article, [event1, event2]
+    )
 
     assert match_result.is_match is True
     assert match_result.event == event1
     assert match_result.similarity_score > 0.70
-    assert match_result.stage in ("STAGE1_VECTOR", "STAGE2_CROSS_ENCODER", "FUZZY_FALLBACK")
+    assert match_result.stage in (
+        "STAGE1_VECTOR",
+        "STAGE2_CROSS_ENCODER",
+        "FUZZY_FALLBACK",
+    )

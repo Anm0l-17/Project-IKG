@@ -1,11 +1,11 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.domain import Domain
-from app.models.topic import Topic
-from app.models.event import Event
-from app.services.search.hybrid_search import HybridSearchService
 from app.ai.embeddings import embedding_service
+from app.models.domain import Domain
+from app.models.event import Event
+from app.models.topic import Topic
+from app.services.search.hybrid_search import HybridSearchService
 
 
 @pytest.mark.asyncio
@@ -56,7 +56,9 @@ async def test_semantic_search_with_vectors(db_session: AsyncSession):
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="Indigenisation", slug="indigenisation-search")
+    topic = Topic(
+        domain_id=domain.id, name="Indigenisation", slug="indigenisation-search"
+    )
     db_session.add(topic)
     await db_session.flush()
 
@@ -92,7 +94,9 @@ async def test_semantic_search_with_vectors(db_session: AsyncSession):
     await db_session.commit()
 
     service = HybridSearchService(db_session)
-    result = await service.search(query="atomic naval submarine military fleet", mode="semantic")
+    result = await service.search(
+        query="atomic naval submarine military fleet", mode="semantic"
+    )
 
     assert result["total_results"] >= 1
     top_result = result["results"][0]
@@ -102,12 +106,16 @@ async def test_semantic_search_with_vectors(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_hybrid_search_with_category_and_verification_filters(db_session: AsyncSession):
+async def test_hybrid_search_with_category_and_verification_filters(
+    db_session: AsyncSession,
+):
     domain = Domain(name="Trade", slug="trade-filters")
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="Bilateral Accords", slug="bilateral-accords")
+    topic = Topic(
+        domain_id=domain.id, name="Bilateral Accords", slug="bilateral-accords"
+    )
     db_session.add(topic)
     await db_session.flush()
 

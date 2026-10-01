@@ -1,6 +1,7 @@
 import re
-from pydantic import BaseModel, Field
-from typing import List
+
+from pydantic import BaseModel
+
 
 class ExtractedEntityDTO(BaseModel):
     canonical_name: str
@@ -13,28 +14,63 @@ class EntityExtractionService:
     Named Entity Recognition (NER) Service for extracting Indian ministries,
     bills, acts, states, persons, and organizations.
     """
+
     INDIAN_STATES = [
-        "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", 
-        "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", 
-        "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", 
-        "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", 
-        "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi"
+        "Andhra Pradesh",
+        "Arunachal Pradesh",
+        "Assam",
+        "Bihar",
+        "Chhattisgarh",
+        "Goa",
+        "Gujarat",
+        "Haryana",
+        "Himachal Pradesh",
+        "Jharkhand",
+        "Karnataka",
+        "Kerala",
+        "Madhya Pradesh",
+        "Maharashtra",
+        "Manipur",
+        "Meghalaya",
+        "Mizoram",
+        "Nagaland",
+        "Odisha",
+        "Punjab",
+        "Rajasthan",
+        "Sikkim",
+        "Tamil Nadu",
+        "Telangana",
+        "Tripura",
+        "Uttar Pradesh",
+        "Uttarakhand",
+        "West Bengal",
+        "Delhi",
     ]
 
     ORGANIZATIONS = [
-        "ISRO", "DRDO", "RBI", "SEBI", "NITI Aayog", "Supreme Court", "High Court",
-        "Parliament", "Lok Sabha", "Rajya Sabha", "Cabinet"
+        "ISRO",
+        "DRDO",
+        "RBI",
+        "SEBI",
+        "NITI Aayog",
+        "Supreme Court",
+        "High Court",
+        "Parliament",
+        "Lok Sabha",
+        "Rajya Sabha",
+        "Cabinet",
     ]
 
     def __init__(self):
         self.nlp = None
         try:
             import spacy
+
             self.nlp = spacy.load("en_core_web_sm")
         except Exception:
             self.nlp = None
 
-    def extract_entities(self, text: str) -> List[ExtractedEntityDTO]:
+    def extract_entities(self, text: str) -> list[ExtractedEntityDTO]:
         entities: dict[str, ExtractedEntityDTO] = {}
 
         if not text:
@@ -44,37 +80,31 @@ class EntityExtractionService:
         for match in re.finditer(r"(Ministry of [A-Z][a-z]+(?:\s[A-Z][a-z]+)*)", text):
             name = match.group(1).strip()
             entities[name] = ExtractedEntityDTO(
-                canonical_name=name,
-                entity_type="Ministry",
-                confidence=0.95
+                canonical_name=name, entity_type="Ministry", confidence=0.95
             )
 
         # 2. Bill / Act Pattern Matching: "[Words] Bill/Act"
-        for match in re.finditer(r"([A-Z][a-z]+(?:\s[A-Z][a-z]+)*\s(?:Bill|Act))", text):
+        for match in re.finditer(
+            r"([A-Z][a-z]+(?:\s[A-Z][a-z]+)*\s(?:Bill|Act))", text
+        ):
             name = match.group(1).strip()
             etype = "Act" if "Act" in name else "Bill"
             entities[name] = ExtractedEntityDTO(
-                canonical_name=name,
-                entity_type=etype,
-                confidence=0.90
+                canonical_name=name, entity_type=etype, confidence=0.90
             )
 
         # 3. Indian States Taxonomy
         for state in self.INDIAN_STATES:
             if re.search(r"\b" + re.escape(state) + r"\b", text):
                 entities[state] = ExtractedEntityDTO(
-                    canonical_name=state,
-                    entity_type="State",
-                    confidence=1.0
+                    canonical_name=state, entity_type="State", confidence=1.0
                 )
 
         # 4. Known Institutions & Organizations
         for org in self.ORGANIZATIONS:
             if re.search(r"\b" + re.escape(org) + r"\b", text):
                 entities[org] = ExtractedEntityDTO(
-                    canonical_name=org,
-                    entity_type="Organization",
-                    confidence=0.95
+                    canonical_name=org, entity_type="Organization", confidence=0.95
                 )
 
         # 5. spaCy Model Extraction (if available)
@@ -85,11 +115,11 @@ class EntityExtractionService:
                     if ent.label_ in ("PERSON", "ORG", "GPE"):
                         name = ent.text.strip()
                         if len(name) > 2 and name not in entities:
-                            etype = "Person" if ent.label_ == "PERSON" else "Organization"
+                            etype = (
+                                "Person" if ent.label_ == "PERSON" else "Organization"
+                            )
                             entities[name] = ExtractedEntityDTO(
-                                canonical_name=name,
-                                entity_type=etype,
-                                confidence=0.85
+                                canonical_name=name, entity_type=etype, confidence=0.85
                             )
             except Exception:
                 pass

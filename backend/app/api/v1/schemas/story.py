@@ -1,5 +1,3 @@
-from typing import List, Optional
-from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
@@ -12,8 +10,8 @@ class StoryTimelineItem(BaseModel):
     category: str
     first_seen: str
     verification_status: str
-    summary: Optional[str] = None
-    sources: List[str] = []
+    summary: str | None = None
+    sources: list[str] = []
     source_count: int = 0
 
 
@@ -23,11 +21,11 @@ class StorySummaryResponse(BaseModel):
     id: str
     title: str
     slug: str
-    description: Optional[str] = None
+    description: str | None = None
     status: str
     topic_id: str
-    topic_name: Optional[str] = None
-    domain_name: Optional[str] = None
+    topic_name: str | None = None
+    domain_name: str | None = None
     event_count: int = 0
     created_at: str
     updated_at: str
@@ -36,9 +34,9 @@ class StorySummaryResponse(BaseModel):
 class StoryDetailResponse(StorySummaryResponse):
     model_config = ConfigDict(from_attributes=True)
 
-    sources: List[str] = []
+    sources: list[str] = []
     source_count: int = 0
-    timeline: List[StoryTimelineItem] = []
+    timeline: list[StoryTimelineItem] = []
 
 
 class StoryClusterResponse(BaseModel):

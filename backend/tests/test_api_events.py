@@ -23,4 +23,3 @@ async def test_trigger_ingestion_background_api(client: AsyncClient):
     data = response.json()
     assert data["status"] == "PENDING"
     assert "triggered successfully" in data["message"]
-

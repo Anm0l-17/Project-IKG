@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -8,8 +9,12 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change-this-in-production-secret-key-32-bytes-min"
 
     # PostgreSQL Database
-    DATABASE_URL: str = "postgresql+asyncpg://ikg_user:ikg_password@localhost:5432/ikg_db"
-    ALEMBIC_DATABASE_URL: str = "postgresql+psycopg://ikg_user:ikg_password@localhost:5432/ikg_db"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://ikg_user:ikg_password@localhost:5432/ikg_db"
+    )
+    ALEMBIC_DATABASE_URL: str = (
+        "postgresql+psycopg://ikg_user:ikg_password@localhost:5432/ikg_db"
+    )
     DATABASE_SSL: str = "disable"  # "require", "verify-full", or "disable"
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 10
@@ -38,9 +43,7 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "qwen3:8b"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
 

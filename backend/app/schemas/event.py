@@ -1,16 +1,17 @@
-from pydantic import BaseModel, ConfigDict, computed_field
-from typing import Optional, List
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, computed_field
+
+from app.models.enums import EventLifecycleState, GroupingStatus, VerificationStatus
 from app.schemas.timeline import TimelineEntryResponse
-from app.models.enums import VerificationStatus, GroupingStatus, EventLifecycleState
 
 
 class EventBase(BaseModel):
     canonical_title: str
     slug: str
     category: str
-    subcategory: Optional[str] = None
-    summary: Optional[str] = None
+    subcategory: str | None = None
+    summary: str | None = None
     knowledge_score: float = 0.0
     importance_score: float = 0.0
     grouping_status: str = GroupingStatus.UNGROUPED.value
@@ -27,8 +28,8 @@ class EventSummaryResponse(BaseModel):
     canonical_title: str
     slug: str
     category: str
-    subcategory: Optional[str] = None
-    summary: Optional[str] = None
+    subcategory: str | None = None
+    summary: str | None = None
     knowledge_score: float
     grouping_status: str
     verification_status: str
@@ -48,7 +49,6 @@ class EventSummaryResponse(BaseModel):
 
 
 class EventDetailResponse(EventSummaryResponse):
-    timeline_entries: List[TimelineEntryResponse] = []
+    timeline_entries: list[TimelineEntryResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
-

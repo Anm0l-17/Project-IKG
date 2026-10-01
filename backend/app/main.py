@@ -1,25 +1,25 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from app.core.config import settings
-from app.core.logger import configure_logging, logger
-from app.api.v1.health import router as health_router
-from app.api.v1.feed import router as feed_router
-from app.api.v1.event import router as event_router
-from app.api.v1.timeline import router as timeline_router
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.v1.category import router as category_router
-from app.api.v1.search import router as search_router
+from app.api.v1.event import router as event_router
+from app.api.v1.feed import router as feed_router
 from app.api.v1.graph import router as graph_router
+from app.api.v1.health import router as health_router
+from app.api.v1.metrics import router as metrics_router
+from app.api.v1.search import router as search_router
 from app.api.v1.story import router as story_router
 from app.api.v1.tasks import router as tasks_router
-from app.api.v1.metrics import router as metrics_router
-from app.middleware.observability import ObservabilityMiddleware
-from app.middleware.security import SecurityHeadersMiddleware, RateLimiterMiddleware
-
-
+from app.api.v1.timeline import router as timeline_router
+from app.core.config import settings
+from app.core.logger import configure_logging, logger
 from app.db.postgres import engine
+from app.middleware.observability import ObservabilityMiddleware
+from app.middleware.security import RateLimiterMiddleware, SecurityHeadersMiddleware
 from app.workers.scheduler import ingestion_scheduler
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -42,7 +42,11 @@ app = FastAPI(
 )
 
 # Configure CORS
-allow_origins = ["http://localhost:3000", "http://127.0.0.1:3000"] if settings.APP_ENV == "development" else []
+allow_origins = (
+    ["http://localhost:3000", "http://127.0.0.1:3000"]
+    if settings.APP_ENV == "development"
+    else []
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins if allow_origins else ["*"],
@@ -74,5 +78,5 @@ async def root():
     return {
         "message": "Welcome to India Knowledge Graph API",
         "docs": "/docs",
-        "health": "/api/v1/health"
+        "health": "/api/v1/health",
     }

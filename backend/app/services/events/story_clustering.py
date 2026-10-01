@@ -1,19 +1,19 @@
-import re
 import logging
-from typing import List, Optional, Dict, Any, Set
-from datetime import datetime, timezone
-from sqlalchemy import select, and_, or_
+import re
+from datetime import UTC, datetime
+from typing import Any
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.ai.embeddings import embedding_service
+from app.models.article import Article
+from app.models.entity import EventEntity
+from app.models.event import Event
+from app.models.evidence import Evidence
 from app.models.story import Story
 from app.models.topic import Topic
-from app.models.event import Event
-from app.models.entity import Entity, EventEntity
-from app.models.article import Article
-from app.models.evidence import Evidence
-from app.models.relationship import EventRelationship
-from app.ai.embeddings import embedding_service
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ class StoryClusteringService:
             return False
 
         # Gather distinct source IDs across all events' articles and evidence
-        distinct_source_ids: Set[str] = set()
+        distinct_source_ids: set[str] = set()
         for ev in qualifying_events:
             for art in ev.articles:
                 if art.source_id:
@@ -92,7 +92,7 @@ class StoryClusteringService:
 
         return is_verified
 
-    async def cluster_ungrouped_events(self, limit: int = 50) -> Dict[str, Any]:
+    async def cluster_ungrouped_events(self, limit: int = 50) -> dict[str, Any]:
         """
         Scans UNGROUPED Events and groups them into existing or new Stories based on:
         1. Existing graph relationship edges (PRECEDES, CAUSES, RELATED_TO).
@@ -118,23 +118,20 @@ class StoryClusteringService:
             return {"grouped_count": 0, "stories_created": 0, "stories_updated": 0}
 
         # Fetch active Topics and existing Stories
-        stories_stmt = (
-            select(Story)
-            .options(
-                selectinload(Story.events)
-                .selectinload(Event.event_entities)
-                .selectinload(EventEntity.entity)
-            )
+        stories_stmt = select(Story).options(
+            selectinload(Story.events)
+            .selectinload(Event.event_entities)
+            .selectinload(EventEntity.entity)
         )
         s_res = await self.db.execute(stories_stmt)
         existing_stories = s_res.scalars().all()
 
         grouped_count = 0
         stories_created = 0
-        stories_updated_set: Set[str] = set()
+        stories_updated_set: set[str] = set()
 
         for event in ungrouped_events:
-            matched_story: Optional[Story] = None
+            matched_story: Story | None = None
             event_text = f"{event.canonical_title} {event.summary or ''}"
             event_vec = embedding_service.generate_embedding(event_text)
             event_entities = {ee.entity_id for ee in event.event_entities}
@@ -155,7 +152,9 @@ class StoryClusteringService:
 
             # Check 2: Affinity with existing Stories under the same Topic
             if not matched_story and event.topic_id:
-                topic_stories = [s for s in existing_stories if s.topic_id == event.topic_id]
+                topic_stories = [
+                    s for s in existing_stories if s.topic_id == event.topic_id
+                ]
                 for story in topic_stories:
                     for s_ev in story.events:
                         s_entities = {ee.entity_id for ee in s_ev.event_entities}
@@ -185,8 +184,11 @@ class StoryClusteringService:
                 # Look for a sibling un-grouped event with high affinity
                 if event.topic_id:
                     siblings = [
-                        e for e in ungrouped_events
-                        if e.id != event.id and e.topic_id == event.topic_id and e.grouping_status == "UNGROUPED"
+                        e
+                        for e in ungrouped_events
+                        if e.id != event.id
+                        and e.topic_id == event.topic_id
+                        and e.grouping_status == "UNGROUPED"
                     ]
                     for sib in siblings:
                         sib_entities = {ee.entity_id for ee in sib.event_entities}
@@ -201,7 +203,7 @@ class StoryClusteringService:
                             new_story = Story(
                                 topic_id=event.topic_id,
                                 title=f"Narrative: {base_title[:80]}",
-                                slug=f"{slugify(base_title)}-{int(datetime.now(timezone.utc).timestamp())}",
+                                slug=f"{slugify(base_title)}-{int(datetime.now(UTC).timestamp())}",
                                 description=f"Chronological narrative evolving around {base_title}.",
                                 status="PENDING",
                             )
@@ -232,7 +234,7 @@ class StoryClusteringService:
             "stories_updated": len(stories_updated_set),
         }
 
-    async def get_story_timeline(self, story_id: str) -> Optional[Dict[str, Any]]:
+    async def get_story_timeline(self, story_id: str) -> dict[str, Any] | None:
         """
         Retrieves Story detail and its chronological Event narrative timeline.
         """
@@ -255,7 +257,7 @@ class StoryClusteringService:
         sorted_events = sorted(story.events, key=lambda e: e.first_seen)
 
         timeline_items = []
-        all_sources: Set[str] = set()
+        all_sources: set[str] = set()
 
         for idx, ev in enumerate(sorted_events, start=1):
             ev_sources = set()
@@ -264,17 +266,19 @@ class StoryClusteringService:
                     ev_sources.add(art.source.name)
                     all_sources.add(art.source.name)
 
-            timeline_items.append({
-                "sequence": idx,
-                "event_id": ev.id,
-                "title": ev.canonical_title,
-                "category": ev.category,
-                "first_seen": ev.first_seen.isoformat(),
-                "verification_status": ev.verification_status,
-                "summary": ev.summary,
-                "sources": list(ev_sources),
-                "source_count": len(ev_sources),
-            })
+            timeline_items.append(
+                {
+                    "sequence": idx,
+                    "event_id": ev.id,
+                    "title": ev.canonical_title,
+                    "category": ev.category,
+                    "first_seen": ev.first_seen.isoformat(),
+                    "verification_status": ev.verification_status,
+                    "summary": ev.summary,
+                    "sources": list(ev_sources),
+                    "source_count": len(ev_sources),
+                }
+            )
 
         return {
             "id": story.id,
@@ -284,7 +288,9 @@ class StoryClusteringService:
             "status": story.status,
             "topic_id": story.topic_id,
             "topic_name": story.topic.name if story.topic else None,
-            "domain_name": story.topic.domain.name if story.topic and story.topic.domain else None,
+            "domain_name": story.topic.domain.name
+            if story.topic and story.topic.domain
+            else None,
             "event_count": len(story.events),
             "sources": list(all_sources),
             "source_count": len(all_sources),

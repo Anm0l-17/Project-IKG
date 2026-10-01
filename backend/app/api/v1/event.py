@@ -1,23 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List, Optional
 import logging
 
-from app.db.postgres import get_db, AsyncSessionLocal
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.v1.schemas.event import IngestionJobResponse
+from app.api.v1.schemas.graph import GraphResponse
+from app.db.postgres import AsyncSessionLocal, get_db
+from app.models.enums import EventLifecycleState, GroupingStatus, VerificationStatus
 from app.models.event import Event
-from app.models.enums import VerificationStatus, GroupingStatus, EventLifecycleState
 from app.repositories.postgres.event_repo import EventRepository
 from app.schemas.event import EventDetailResponse, EventSummaryResponse
-from app.api.v1.schemas.event import IngestionJobResponse, IngestionResultResponse
-from app.services.ingestion.pipeline import IngestionPipeline
+from app.services.events.candidate_generation import CandidateEventService
+from app.services.graph.engine import GraphEngine
 from app.services.ingestion.gktoday import GKTodayAdapter
-from app.services.ingestion.thehindu import TheHinduAdapter
 from app.services.ingestion.indianexpress import IndianExpressAdapter
 from app.services.ingestion.newsapi_fallback import NewsAPIFallbackAdapter
-from app.services.events.candidate_generation import CandidateEventService
-from app.api.v1.schemas.graph import GraphResponse
-from app.services.graph.engine import GraphEngine
+from app.services.ingestion.pipeline import IngestionPipeline
+from app.services.ingestion.thehindu import TheHinduAdapter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -32,19 +32,21 @@ async def run_ingestion_background():
         adapters = [GKTodayAdapter(), TheHinduAdapter(), IndianExpressAdapter()]
         saved_articles = []
         errors = []
-        
+
         for adapter in adapters:
             try:
                 articles = await pipeline.ingest_from_adapter(adapter, limit=20)
                 saved_articles.extend(articles)
             except Exception as e:
                 logger.error(f"Ingestion failed for {adapter.source_name}: {e}")
-                errors.append(f"Failed {adapter.source_name}: {str(e)}")
+                errors.append(f"Failed {adapter.source_name}: {e!s}")
 
         if not saved_articles and errors:
             try:
                 fallback = NewsAPIFallbackAdapter()
-                fallback_articles = await pipeline.ingest_from_adapter(fallback, limit=20)
+                fallback_articles = await pipeline.ingest_from_adapter(
+                    fallback, limit=20
+                )
                 saved_articles.extend(fallback_articles)
             except Exception as e:
                 logger.error(f"Fallback ingestion failed: {e}")
@@ -58,21 +60,16 @@ async def run_ingestion_background():
     response_model=EventDetailResponse,
     summary="Get Event Details",
     description="Retrieve a single Event by ID including its timeline entries and verified evidence.",
-    responses={
-        404: {"description": "The requested event does not exist."}
-    }
+    responses={404: {"description": "The requested event does not exist."}},
 )
-async def get_event(
-    id: str,
-    db: AsyncSession = Depends(get_db)
-):
+async def get_event(id: str, db: AsyncSession = Depends(get_db)):
     repo = EventRepository(db)
     event = await repo.get_by_id(id, load_timeline=True)
 
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="The requested event does not exist."
+            detail="The requested event does not exist.",
         )
 
     return EventDetailResponse.model_validate(event)
@@ -83,38 +80,37 @@ async def get_event(
     response_model=IngestionJobResponse,
     status_code=status.HTTP_202_ACCEPTED,
     summary="Trigger Offline Ingestion Job",
-    description="Triggers the RSS ingestion and candidate event creation process asynchronously in a background task."
+    description="Triggers the RSS ingestion and candidate event creation process asynchronously in a background task.",
 )
 async def trigger_ingestion(background_tasks: BackgroundTasks):
     background_tasks.add_task(run_ingestion_background)
     return IngestionJobResponse(
         message="Ingestion pipeline triggered successfully in background.",
-        status="PENDING"
+        status="PENDING",
     )
 
 
 @router.get(
     "/events",
-    response_model=List[EventSummaryResponse],
+    response_model=list[EventSummaryResponse],
     summary="List Events",
-    description="Lists events with optional filtering by verification status or grouping status."
+    description="Lists events with optional filtering by verification status or grouping status.",
 )
 async def list_events(
-    verification_status: Optional[str] = Query(
+    verification_status: str | None = Query(
         None,
-        description="Filter by verification status (PENDING, VERIFIED, REJECTED, ARCHIVED)"
+        description="Filter by verification status (PENDING, VERIFIED, REJECTED, ARCHIVED)",
     ),
-    grouping_status: Optional[str] = Query(
-        None,
-        description="Filter by grouping status (UNGROUPED, GROUPED)"
+    grouping_status: str | None = Query(
+        None, description="Filter by grouping status (UNGROUPED, GROUPED)"
     ),
-    status_filter: Optional[str] = Query(
+    status_filter: str | None = Query(
         None,
         alias="status",
-        description="Filter by internal state (e.g. PENDING, VERIFIED, ACTIVE, HISTORICAL)"
+        description="Filter by internal state (e.g. PENDING, VERIFIED, ACTIVE, HISTORICAL)",
     ),
     limit: int = Query(50, ge=1, le=100, description="Number of results to return"),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     stmt = select(Event).order_by(Event.created_at.desc()).limit(limit)
 
@@ -123,7 +119,7 @@ async def list_events(
         if verification_status not in valid_v_statuses:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid verification_status. Must be one of: {valid_v_statuses}"
+                detail=f"Invalid verification_status. Must be one of: {valid_v_statuses}",
             )
         stmt = stmt.where(Event.verification_status == verification_status)
 
@@ -132,7 +128,7 @@ async def list_events(
         if grouping_status not in valid_g_statuses:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid grouping_status. Must be one of: {valid_g_statuses}"
+                detail=f"Invalid grouping_status. Must be one of: {valid_g_statuses}",
             )
         stmt = stmt.where(Event.grouping_status == grouping_status)
 
@@ -141,7 +137,7 @@ async def list_events(
         if status_filter not in valid_states:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid status. Must be one of: {valid_states}"
+                detail=f"Invalid status. Must be one of: {valid_states}",
             )
         stmt = stmt.where(Event.status == status_filter)
 
@@ -155,7 +151,9 @@ async def list_events(
 async def get_event_graph_subgraph(
     id: str,
     depth: int = Query(1, ge=1, le=3, description="Subgraph traversal depth"),
-    min_confidence: float = Query(0.5, ge=0.0, le=1.0, description="Minimum edge confidence"),
+    min_confidence: float = Query(
+        0.5, ge=0.0, le=1.0, description="Minimum edge confidence"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -171,5 +169,3 @@ async def get_event_graph_subgraph(
             detail=f"Event with ID '{id}' not found.",
         )
     return GraphResponse(**graph_data)
-
-

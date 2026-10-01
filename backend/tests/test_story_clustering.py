@@ -1,13 +1,13 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.article import Article
 from app.models.domain import Domain
-from app.models.topic import Topic
-from app.models.story import Story
+from app.models.entity import Entity, EventEntity
 from app.models.event import Event
 from app.models.source import Source
-from app.models.article import Article
-from app.models.entity import Entity, EventEntity
+from app.models.story import Story
+from app.models.topic import Topic
 from app.services.events.story_clustering import StoryClusteringService
 
 
@@ -18,7 +18,9 @@ async def test_cluster_creates_new_story_for_sibling_events(db_session: AsyncSes
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="Monetary Policy", slug="monetary-policy-sc")
+    topic = Topic(
+        domain_id=domain.id, name="Monetary Policy", slug="monetary-policy-sc"
+    )
     db_session.add(topic)
     await db_session.flush()
 
@@ -87,8 +89,18 @@ async def test_story_verified_with_two_independent_sources(db_session: AsyncSess
     db_session.add(story)
     await db_session.flush()
 
-    source1 = Source(name="GKToday", domain="gktoday.in", rss_url="https://gktoday.in/rss", trust_score=0.95)
-    source2 = Source(name="The Hindu", domain="thehindu.com", rss_url="https://www.thehindu.com/rss", trust_score=0.95)
+    source1 = Source(
+        name="GKToday",
+        domain="gktoday.in",
+        rss_url="https://gktoday.in/rss",
+        trust_score=0.95,
+    )
+    source2 = Source(
+        name="The Hindu",
+        domain="thehindu.com",
+        rss_url="https://www.thehindu.com/rss",
+        trust_score=0.95,
+    )
     db_session.add_all([source1, source2])
     await db_session.flush()
 
@@ -146,7 +158,9 @@ async def test_story_remains_pending_with_single_source(db_session: AsyncSession
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="India-UK FTA Single Source", slug="india-uk-fta-sp")
+    topic = Topic(
+        domain_id=domain.id, name="India-UK FTA Single Source", slug="india-uk-fta-sp"
+    )
     db_session.add(topic)
     await db_session.flush()
 
@@ -160,7 +174,10 @@ async def test_story_remains_pending_with_single_source(db_session: AsyncSession
     await db_session.flush()
 
     single_source = Source(
-        name="GKToday", domain="gktoday.in", rss_url="https://gktoday.in/rss", trust_score=0.95
+        name="GKToday",
+        domain="gktoday.in",
+        rss_url="https://gktoday.in/rss",
+        trust_score=0.95,
     )
     db_session.add(single_source)
     await db_session.flush()
@@ -188,12 +205,18 @@ async def test_story_remains_pending_with_single_source(db_session: AsyncSession
 
     # Both articles from the same single source
     art1 = Article(
-        source_id=single_source.id, event_id=ev1.id,
-        url="https://gktoday.in/r15", headline="FTA round 15", hash="h1sp"
+        source_id=single_source.id,
+        event_id=ev1.id,
+        url="https://gktoday.in/r15",
+        headline="FTA round 15",
+        hash="h1sp",
     )
     art2 = Article(
-        source_id=single_source.id, event_id=ev2.id,
-        url="https://gktoday.in/dairy", headline="FTA dairy", hash="h2sp"
+        source_id=single_source.id,
+        event_id=ev2.id,
+        url="https://gktoday.in/dairy",
+        headline="FTA dairy",
+        hash="h2sp",
     )
     db_session.add_all([art1, art2])
     await db_session.commit()
@@ -207,7 +230,9 @@ async def test_story_remains_pending_with_single_source(db_session: AsyncSession
 
 
 @pytest.mark.asyncio
-async def test_story_with_fewer_than_two_events_remains_pending(db_session: AsyncSession):
+async def test_story_with_fewer_than_two_events_remains_pending(
+    db_session: AsyncSession,
+):
     """Story with only one event must not be promoted to VERIFIED."""
     domain = Domain(name="Defence", slug="defence-sp2")
     db_session.add(domain)
@@ -226,7 +251,12 @@ async def test_story_with_fewer_than_two_events_remains_pending(db_session: Asyn
     db_session.add(story)
     await db_session.flush()
 
-    src = Source(name="PIB", domain="pib.gov.in", rss_url="https://pib.gov.in/rss", trust_score=0.95)
+    src = Source(
+        name="PIB",
+        domain="pib.gov.in",
+        rss_url="https://pib.gov.in/rss",
+        trust_score=0.95,
+    )
     db_session.add(src)
     await db_session.flush()
 
@@ -242,7 +272,13 @@ async def test_story_with_fewer_than_two_events_remains_pending(db_session: Asyn
     db_session.add(ev)
     await db_session.flush()
 
-    art = Article(source_id=src.id, event_id=ev.id, url="https://pib.gov.in/tejas", headline="Tejas test", hash="h_tejas")
+    art = Article(
+        source_id=src.id,
+        event_id=ev.id,
+        url="https://pib.gov.in/tejas",
+        headline="Tejas test",
+        hash="h_tejas",
+    )
     db_session.add(art)
     await db_session.commit()
 

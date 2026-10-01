@@ -1,14 +1,13 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timezone, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.models.domain import Domain
-from app.models.topic import Topic
-from app.models.story import Story
-from app.models.event import Event
 from app.models.entity import Entity, EventEntity
-from app.models.relationship import EventRelationship
+from app.models.event import Event
+from app.models.story import Story
+from app.models.topic import Topic
 from app.services.graph.engine import GraphEngine
 
 
@@ -23,11 +22,13 @@ async def test_precedes_inference_within_same_story(db_session: AsyncSession):
     db_session.add(topic)
     await db_session.flush()
 
-    story = Story(topic_id=topic.id, title="India-UK Trade Talks 2026", slug="india-uk-talks-2026")
+    story = Story(
+        topic_id=topic.id, title="India-UK Trade Talks 2026", slug="india-uk-talks-2026"
+    )
     db_session.add(story)
     await db_session.flush()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     event1 = Event(
         canonical_title="India and UK commence Round 14 of FTA negotiations",
         slug="india-uk-round-14",
@@ -55,7 +56,9 @@ async def test_precedes_inference_within_same_story(db_session: AsyncSession):
     inferred = await engine.infer_relationships_for_event(event2.id)
 
     assert len(inferred) >= 1
-    precedes_rel = next((r for r in inferred if r.relationship_type == "PRECEDES"), None)
+    precedes_rel = next(
+        (r for r in inferred if r.relationship_type == "PRECEDES"), None
+    )
     assert precedes_rel is not None
     assert precedes_rel.source_event_id == event1.id
     assert precedes_rel.target_event_id == event2.id
@@ -64,12 +67,14 @@ async def test_precedes_inference_within_same_story(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
-async def test_causes_inference_with_causal_cue_and_entity_overlap(db_session: AsyncSession):
+async def test_causes_inference_with_causal_cue_and_entity_overlap(
+    db_session: AsyncSession,
+):
     domain = Domain(name="Economics", slug="economics")
     db_session.add(domain)
     await db_session.flush()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     event1 = Event(
         canonical_title="RBI raises repo rate by 25 bps to curb inflation",
         slug="rbi-raises-repo-rate-25bps",
@@ -121,11 +126,15 @@ async def test_related_to_inference_with_shared_entities(db_session: AsyncSessio
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="Indigenous Defence Systems", slug="indigenous-defence")
+    topic = Topic(
+        domain_id=domain.id,
+        name="Indigenous Defence Systems",
+        slug="indigenous-defence",
+    )
     db_session.add(topic)
     await db_session.flush()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     event1 = Event(
         canonical_title="DRDO tests next-generation air defence missile",
         slug="drdo-tests-missile",
@@ -162,7 +171,9 @@ async def test_related_to_inference_with_shared_entities(db_session: AsyncSessio
     engine = GraphEngine(db_session)
     inferred = await engine.infer_relationships_for_event(event2.id)
 
-    related_rel = next((r for r in inferred if r.relationship_type == "RELATED_TO"), None)
+    related_rel = next(
+        (r for r in inferred if r.relationship_type == "RELATED_TO"), None
+    )
     assert related_rel is not None
     assert related_rel.confidence >= 0.70
     assert "Topical affinity" in related_rel.reasoning
@@ -187,7 +198,12 @@ async def test_subgraph_extraction(db_session: AsyncSession):
     db_session.add(entity)
     await db_session.flush()
 
-    ee = EventEntity(event_id=event.id, entity_id=entity.id, relationship_type="MENTIONS", confidence=0.98)
+    ee = EventEntity(
+        event_id=event.id,
+        entity_id=entity.id,
+        relationship_type="MENTIONS",
+        confidence=0.98,
+    )
     db_session.add(ee)
     await db_session.commit()
 

@@ -1,10 +1,10 @@
 import logging
-from typing import Optional, List
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.postgres import get_db
 from app.api.v1.schemas.graph import GraphResponse
+from app.db.postgres import get_db
 from app.services.graph.engine import GraphEngine
 
 router = APIRouter(prefix="/graph", tags=["Graph"])
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 @router.get("", response_model=GraphResponse)
 async def get_graph(
-    domain_id: Optional[str] = Query(None, description="Filter graph by Domain ID"),
-    category: Optional[str] = Query(None, description="Filter graph by Domain Category"),
+    domain_id: str | None = Query(None, description="Filter graph by Domain ID"),
+    category: str | None = Query(None, description="Filter graph by Domain Category"),
     limit: int = Query(40, ge=5, le=150, description="Max event nodes to include"),
     db: AsyncSession = Depends(get_db),
 ):
@@ -22,7 +22,9 @@ async def get_graph(
     Returns a global overview slice of the Knowledge Graph including Events, Entities, and connecting edges.
     """
     engine = GraphEngine(db)
-    graph_data = await engine.get_global_graph(domain_id=domain_id, category=category, limit=limit)
+    graph_data = await engine.get_global_graph(
+        domain_id=domain_id, category=category, limit=limit
+    )
     return GraphResponse(**graph_data)
 
 
@@ -30,7 +32,9 @@ async def get_graph(
 async def get_event_subgraph(
     event_id: str,
     depth: int = Query(1, ge=1, le=3, description="Subgraph traversal depth"),
-    min_confidence: float = Query(0.5, ge=0.0, le=1.0, description="Minimum edge confidence"),
+    min_confidence: float = Query(
+        0.5, ge=0.0, le=1.0, description="Minimum edge confidence"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """

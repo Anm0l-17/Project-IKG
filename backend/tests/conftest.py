@@ -1,8 +1,8 @@
-import pytest
+from collections.abc import AsyncGenerator
+
 import pytest_asyncio
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.db.postgres import Base, get_db
 from app.main import app
@@ -22,14 +22,14 @@ async def db_engine():
 
 
 @pytest_asyncio.fixture(scope="function")
-async def db_session(db_engine) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(db_engine) -> AsyncGenerator[AsyncSession]:
     async_session_factory = async_sessionmaker(db_engine, expire_on_commit=False)
     async with async_session_factory() as session:
         yield session
 
 
 @pytest_asyncio.fixture(scope="function")
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient]:
     async def override_get_db():
         yield db_session
 

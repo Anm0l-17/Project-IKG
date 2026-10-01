@@ -3,8 +3,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.domain import Domain
-from app.models.topic import Topic
 from app.models.event import Event
+from app.models.topic import Topic
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,9 @@ async def test_search_api_hybrid_mode(client: AsyncClient, db_session: AsyncSess
     db_session.add(domain)
     await db_session.flush()
 
-    topic = Topic(domain_id=domain.id, name="Multilateral Summits", slug="summits-api-search")
+    topic = Topic(
+        domain_id=domain.id, name="Multilateral Summits", slug="summits-api-search"
+    )
     db_session.add(topic)
     await db_session.flush()
 

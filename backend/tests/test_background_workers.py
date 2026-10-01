@@ -1,15 +1,15 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.domain import Domain
+from app.models.event import Event
+from app.models.topic import Topic
 from app.workers.dispatcher import TaskDispatcher
 from app.workers.tasks import (
+    task_backfill_embeddings,
     task_infer_relationships,
     task_verification_consensus,
-    task_backfill_embeddings,
 )
-from app.models.domain import Domain
-from app.models.topic import Topic
-from app.models.event import Event
 
 
 @pytest.mark.asyncio

@@ -1,22 +1,23 @@
-from typing import Dict, Any
+from typing import Any
+
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.postgres import get_db
+from app.middleware.observability import metrics_collector
 from app.models.event import Event
-from app.models.story import Story
 from app.models.relationship import EventRelationship
 from app.models.source import Source
-from app.middleware.observability import metrics_collector
+from app.models.story import Story
 
 router = APIRouter(prefix="/metrics", tags=["Observability & Metrics"])
 
 
 class MetricsResponse(BaseModel):
-    telemetry: Dict[str, Any]
-    platform_stats: Dict[str, Any]
+    telemetry: dict[str, Any]
+    platform_stats: dict[str, Any]
 
 
 @router.get("", response_model=MetricsResponse)

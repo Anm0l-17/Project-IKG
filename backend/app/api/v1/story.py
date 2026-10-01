@@ -1,29 +1,31 @@
 import logging
-from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.api.v1.schemas.story import (
+    StoryClusterResponse,
+    StoryDetailResponse,
+    StorySummaryResponse,
+)
 from app.db.postgres import get_db
 from app.models.story import Story
 from app.models.topic import Topic
-from app.api.v1.schemas.story import (
-    StorySummaryResponse,
-    StoryDetailResponse,
-    StoryClusterResponse,
-)
 from app.services.events.story_clustering import StoryClusteringService
 
 router = APIRouter(prefix="/stories", tags=["Stories"])
 logger = logging.getLogger(__name__)
 
 
-@router.get("", response_model=List[StorySummaryResponse])
+@router.get("", response_model=list[StorySummaryResponse])
 async def list_stories(
-    topic_id: Optional[str] = Query(None, description="Filter stories by Topic ID"),
-    domain_id: Optional[str] = Query(None, description="Filter stories by Domain ID"),
-    status_filter: Optional[str] = Query(None, description="Filter by status (PENDING, VERIFIED, ARCHIVED)"),
+    topic_id: str | None = Query(None, description="Filter stories by Topic ID"),
+    domain_id: str | None = Query(None, description="Filter stories by Domain ID"),
+    status_filter: str | None = Query(
+        None, description="Filter by status (PENDING, VERIFIED, ARCHIVED)"
+    ),
     limit: int = Query(50, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
 ):
@@ -90,7 +92,9 @@ async def get_story_detail(
 
 @router.post("/cluster", response_model=StoryClusterResponse)
 async def cluster_ungrouped_events(
-    limit: int = Query(50, ge=1, le=200, description="Max ungrouped events to evaluate"),
+    limit: int = Query(
+        50, ge=1, le=200, description="Max ungrouped events to evaluate"
+    ),
     db: AsyncSession = Depends(get_db),
 ):
     """

@@ -1,13 +1,15 @@
 import logging
 from urllib.parse import urlparse
+
 from arq.connections import RedisSettings
+
 from app.core.config import settings
 from app.workers.tasks import (
+    task_backfill_embeddings,
+    task_cluster_stories,
+    task_infer_relationships,
     task_ingest_rss,
     task_verification_consensus,
-    task_infer_relationships,
-    task_cluster_stories,
-    task_backfill_embeddings,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,7 @@ class WorkerSettings:
     ARQ Worker Settings for running distributed background jobs.
     Run via: arq app.workers.arq_worker.WorkerSettings
     """
+
     functions = [
         task_ingest_rss,
         task_verification_consensus,

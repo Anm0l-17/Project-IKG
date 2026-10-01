@@ -1,9 +1,9 @@
 import logging
-from typing import List, Optional
-from app.models.event import Event
-from app.models.article import Article
+
 from app.ai.providers.base import LLMResponse
 from app.ai.providers.factory import get_llm_provider
+from app.models.article import Article
+from app.models.event import Event
 
 logger = logging.getLogger(__name__)
 
@@ -14,26 +14,27 @@ class LLMReasoningEngine:
     Invoked ONLY for ambiguous candidate matching cases (cross-encoder score between 0.70 and 0.82)
     or complex relationship evaluations.
     """
+
     def __init__(self):
         self.provider = get_llm_provider()
 
     async def resolve_ambiguous_match(
-        self,
-        article: Article,
-        candidate_events: List[Event]
+        self, article: Article, candidate_events: list[Event]
     ) -> LLMResponse:
         if not candidate_events or not article.headline:
             return LLMResponse(
                 decision="NEW_EVENT",
                 confidence=1.0,
-                explanation="No candidate events provided for reasoning."
+                explanation="No candidate events provided for reasoning.",
             )
 
         # Prepare evidence context for zero-shot reasoning
-        candidates_context = "\n".join([
-            f"Candidate Event ID: {ev.id}\nTitle: {ev.canonical_title}\nCategory: {ev.category}\nSummary: {ev.summary or 'N/A'}\n---"
-            for ev in candidate_events[:3]
-        ])
+        candidates_context = "\n".join(
+            [
+                f"Candidate Event ID: {ev.id}\nTitle: {ev.canonical_title}\nCategory: {ev.category}\nSummary: {ev.summary or 'N/A'}\n---"
+                for ev in candidate_events[:3]
+            ]
+        )
 
         system_instruction = """
 You are an AI decision engine for India Knowledge Graph.
@@ -55,7 +56,7 @@ Return structured JSON with keys:
         prompt = f"""
 Incoming Article:
 Headline: {article.headline}
-Summary: {article.summary or 'N/A'}
+Summary: {article.summary or "N/A"}
 Text snippet: {article.clean_text[:400]}
 
 Candidate Events to Compare:
@@ -66,17 +67,18 @@ Evaluate and return JSON decision:
 
         try:
             response = await self.provider.generate_reasoning(
-                prompt=prompt,
-                system_instruction=system_instruction
+                prompt=prompt, system_instruction=system_instruction
             )
-            logger.info(f"LLM Ambiguity Resolution: {response.decision} (Confidence: {response.confidence})")
+            logger.info(
+                f"LLM Ambiguity Resolution: {response.decision} (Confidence: {response.confidence})"
+            )
             return response
         except Exception as e:
             logger.error(f"LLM Reasoning Engine failure: {e}")
             return LLMResponse(
                 decision="NEW_EVENT",
                 confidence=0.5,
-                explanation=f"LLM Reasoning execution error fallback: {str(e)}"
+                explanation=f"LLM Reasoning execution error fallback: {e!s}",
             )
 
 

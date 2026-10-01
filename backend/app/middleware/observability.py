@@ -1,7 +1,8 @@
+import logging
 import time
 import uuid
-import logging
-from typing import Dict, Any
+from typing import Any
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
@@ -13,15 +14,18 @@ class MetricsCollector:
     """
     In-memory metrics collector for telemetry, request latency, and throughput.
     """
+
     def __init__(self):
         self.start_time = time.time()
         self.total_requests = 0
         self.total_errors = 0
-        self.status_codes: Dict[int, int] = {}
-        self.path_counts: Dict[str, int] = {}
+        self.status_codes: dict[int, int] = {}
+        self.path_counts: dict[str, int] = {}
         self.total_latency_ms = 0.0
 
-    def record_request(self, method: str, path: str, status_code: int, latency_ms: float):
+    def record_request(
+        self, method: str, path: str, status_code: int, latency_ms: float
+    ):
         self.total_requests += 1
         self.total_latency_ms += latency_ms
         self.status_codes[status_code] = self.status_codes.get(status_code, 0) + 1
@@ -33,7 +37,7 @@ class MetricsCollector:
         if status_code >= 400:
             self.total_errors += 1
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         uptime_seconds = time.time() - self.start_time
         avg_latency = (
             self.total_latency_ms / self.total_requests
@@ -52,7 +56,9 @@ class MetricsCollector:
             ),
             "average_latency_ms": round(avg_latency, 2),
             "status_code_distribution": self.status_codes,
-            "popular_routes": dict(sorted(self.path_counts.items(), key=lambda x: x[1], reverse=True)[:10]),
+            "popular_routes": dict(
+                sorted(self.path_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+            ),
         }
 
 
@@ -63,6 +69,7 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
     """
     Tracks request lifecycle, injects X-Request-ID, logs duration, and aggregates metrics.
     """
+
     async def dispatch(self, request: Request, call_next) -> Response:
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
         start_time = time.perf_counter()

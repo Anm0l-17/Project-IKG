@@ -1,22 +1,24 @@
 import math
 import re
-from typing import List
+
 
 class EmbeddingService:
     """
     Service for generating vector embeddings and calculating cosine similarity.
     Uses SentenceTransformers when available, with a deterministic TF-IDF fallback.
     """
+
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         self.model_name = model_name
         self.model = None
         try:
             from sentence_transformers import SentenceTransformer
+
             self.model = SentenceTransformer(model_name)
         except Exception:
             self.model = None
 
-    def generate_embedding(self, text: str) -> List[float]:
+    def generate_embedding(self, text: str) -> list[float]:
         """
         Generates a 384-dimensional dense vector embedding.
         """
@@ -33,7 +35,7 @@ class EmbeddingService:
         # Deterministic 384-dim Hashed Term-Frequency Fallback
         return self._generate_fallback_embedding(text)
 
-    def _generate_fallback_embedding(self, text: str) -> List[float]:
+    def _generate_fallback_embedding(self, text: str) -> list[float]:
         vector = [0.0] * 384
         words = re.findall(r"\w+", text.lower())
         if not words:
@@ -52,7 +54,7 @@ class EmbeddingService:
         return vector
 
     @staticmethod
-    def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
+    def cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
         """
         Calculates cosine similarity between two equal-length vectors.
         """

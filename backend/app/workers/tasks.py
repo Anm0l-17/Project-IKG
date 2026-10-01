@@ -1,21 +1,22 @@
 import logging
-from typing import Dict, Any, Optional
+from typing import Any
+
 from app.db.postgres import AsyncSessionLocal
-from app.services.ingestion.pipeline import IngestionPipeline
+from app.services.events.candidate_generation import CandidateEventService
+from app.services.events.story_clustering import StoryClusteringService
+from app.services.events.verification import VerificationEngine
+from app.services.graph.engine import GraphEngine
 from app.services.ingestion.gktoday import GKTodayAdapter
-from app.services.ingestion.thehindu import TheHinduAdapter
 from app.services.ingestion.indianexpress import IndianExpressAdapter
 from app.services.ingestion.newsapi_fallback import NewsAPIFallbackAdapter
-from app.services.events.candidate_generation import CandidateEventService
-from app.services.events.verification import VerificationEngine
-from app.services.events.story_clustering import StoryClusteringService
-from app.services.graph.engine import GraphEngine
+from app.services.ingestion.pipeline import IngestionPipeline
+from app.services.ingestion.thehindu import TheHinduAdapter
 from app.services.search.hybrid_search import HybridSearchService
 
 logger = logging.getLogger(__name__)
 
 
-async def task_ingest_rss(ctx: Optional[Any] = None, limit: int = 20) -> Dict[str, Any]:
+async def task_ingest_rss(ctx: Any | None = None, limit: int = 20) -> dict[str, Any]:
     """
     Background task: Ingest articles from trusted Indian RSS feeds, run deduplication,
     and generate candidate events.
@@ -44,7 +45,9 @@ async def task_ingest_rss(ctx: Optional[Any] = None, limit: int = 20) -> Dict[st
         created_events_count = 0
         if saved_articles:
             candidate_service = CandidateEventService(db)
-            events = await candidate_service.generate_candidates_from_articles(saved_articles)
+            events = await candidate_service.generate_candidates_from_articles(
+                saved_articles
+            )
             created_events_count = len(events)
 
         return {
@@ -53,7 +56,7 @@ async def task_ingest_rss(ctx: Optional[Any] = None, limit: int = 20) -> Dict[st
         }
 
 
-async def task_verification_consensus(ctx: Optional[Any] = None) -> Dict[str, Any]:
+async def task_verification_consensus(ctx: Any | None = None) -> dict[str, Any]:
     """
     Background task: Process the 10-day pending verification queue and expire uncorroborated events.
     """
@@ -64,11 +67,15 @@ async def task_verification_consensus(ctx: Optional[Any] = None) -> Dict[str, An
         return {"expired_events_count": expired_count}
 
 
-async def task_infer_relationships(ctx: Optional[Any] = None, event_id: str = "") -> Dict[str, Any]:
+async def task_infer_relationships(
+    ctx: Any | None = None, event_id: str = ""
+) -> dict[str, Any]:
     """
     Background task: Compute deterministic graph relationships (PRECEDES, CAUSES, RELATED_TO) for an event.
     """
-    logger.info("Executing background task: task_infer_relationships", event_id=event_id)
+    logger.info(
+        "Executing background task: task_infer_relationships", event_id=event_id
+    )
     if not event_id:
         return {"relationships_created": 0}
 
@@ -78,7 +85,9 @@ async def task_infer_relationships(ctx: Optional[Any] = None, event_id: str = ""
         return {"event_id": event_id, "relationships_created": len(rels)}
 
 
-async def task_cluster_stories(ctx: Optional[Any] = None, limit: int = 50) -> Dict[str, Any]:
+async def task_cluster_stories(
+    ctx: Any | None = None, limit: int = 50
+) -> dict[str, Any]:
     """
     Background task: Group ungrouped events into narrative Stories and evaluate verification status.
     """
@@ -89,11 +98,15 @@ async def task_cluster_stories(ctx: Optional[Any] = None, limit: int = 50) -> Di
         return result
 
 
-async def task_backfill_embeddings(ctx: Optional[Any] = None, batch_size: int = 100) -> Dict[str, Any]:
+async def task_backfill_embeddings(
+    ctx: Any | None = None, batch_size: int = 100
+) -> dict[str, Any]:
     """
     Background task: Compute missing dense vector embeddings for events in background.
     """
-    logger.info("Executing background task: task_backfill_embeddings", batch_size=batch_size)
+    logger.info(
+        "Executing background task: task_backfill_embeddings", batch_size=batch_size
+    )
     async with AsyncSessionLocal() as db:
         service = HybridSearchService(db)
         count = await service.backfill_event_embeddings(batch_size=batch_size)

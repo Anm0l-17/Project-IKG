@@ -1,19 +1,25 @@
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 from app.models.article import Article
-from app.models.source import Source
-from app.models.event import Event
 from app.models.entity import Entity
-from app.models.evidence import Evidence
-from app.models.enums import VerificationStatus, GroupingStatus, DomainCategory, EvidenceType, EventLifecycleState
+from app.models.enums import (
+    DomainCategory,
+    EventLifecycleState,
+    EvidenceType,
+    GroupingStatus,
+    VerificationStatus,
+)
+from app.models.source import Source
 from app.services.events.candidate_generation import CandidateEventService
 
 
 @pytest.mark.asyncio
-async def test_article_with_ministry_generates_event_and_evidence(db_session: AsyncSession):
+async def test_article_with_ministry_generates_event_and_evidence(
+    db_session: AsyncSession,
+):
     # Setup source
     source = Source(name="Test Source", domain="test.com")
     db_session.add(source)
@@ -25,10 +31,10 @@ async def test_article_with_ministry_generates_event_and_evidence(db_session: As
         url="http://test.com/1",
         headline="Ministry of Education announces new policy",
         summary="The Ministry of Education has announced a new educational policy.",
-        published_at=datetime.now(timezone.utc),
-        scraped_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
+        scraped_at=datetime.now(UTC),
         clean_text="Clean text",
-        hash="hash1"
+        hash="hash1",
     )
     db_session.add(article)
     await db_session.commit()
@@ -43,9 +49,9 @@ async def test_article_with_ministry_generates_event_and_evidence(db_session: As
     assert event.grouping_status == GroupingStatus.UNGROUPED.value
     assert event.category == DomainCategory.PARLIAMENT.value
     assert event.canonical_article_id == article.id
-    
+
     # Check Evidence link creation
-    await db_session.refresh(event, ['evidence_items'])
+    await db_session.refresh(event, ["evidence_items"])
     assert len(event.evidence_items) == 1
     evidence = event.evidence_items[0]
     assert evidence.article_id == article.id
@@ -53,7 +59,7 @@ async def test_article_with_ministry_generates_event_and_evidence(db_session: As
     assert evidence.confidence == 1.0
 
     # Check entities
-    await db_session.refresh(event, ['event_entities'])
+    await db_session.refresh(event, ["event_entities"])
     assert len(event.event_entities) > 0
     entity_id = event.event_entities[0].entity_id
     entity = await db_session.get(Entity, entity_id)
@@ -72,10 +78,10 @@ async def test_article_without_entities_still_generates_event(db_session: AsyncS
         url="http://test2.com/1",
         headline="Weather forecast for Delhi",
         summary="Sunny today.",
-        published_at=datetime.now(timezone.utc),
-        scraped_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
+        scraped_at=datetime.now(UTC),
         clean_text="Clean text",
-        hash="hash2"
+        hash="hash2",
     )
     db_session.add(article)
     await db_session.commit()
@@ -87,9 +93,9 @@ async def test_article_without_entities_still_generates_event(db_session: AsyncS
     event = events[0]
     assert event.status == EventLifecycleState.PENDING.value
     assert event.category == DomainCategory.CURRENT_AFFAIRS.value
-    
+
     # State 'Delhi' should be extracted
-    await db_session.refresh(event, ['event_entities'])
+    await db_session.refresh(event, ["event_entities"])
     entity = await db_session.get(Entity, event.event_entities[0].entity_id)
     assert entity.canonical_name == "Delhi"
     assert entity.type == "State"
@@ -106,10 +112,10 @@ async def test_duplicate_articles_dont_spawn_duplicate_events(db_session: AsyncS
         url="http://test3.com/1",
         headline="Test Event",
         summary="Summary",
-        published_at=datetime.now(timezone.utc),
-        scraped_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
+        scraped_at=datetime.now(UTC),
         clean_text="Clean text",
-        hash="hash3"
+        hash="hash3",
     )
     db_session.add(article)
     await db_session.commit()
@@ -121,4 +127,3 @@ async def test_duplicate_articles_dont_spawn_duplicate_events(db_session: AsyncS
     # Second pass with same article object (now it has event_id)
     events2 = await service.generate_candidates_from_articles([article])
     assert len(events2) == 0
-
