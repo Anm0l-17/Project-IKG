@@ -3,6 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Response, status
 from pydantic import BaseModel
+from redis.exceptions import ConnectionError as RedisConnectionError
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -58,7 +59,7 @@ async def readiness_check(
         await db.execute(text("SELECT 1;"))
         db_status = {"status": "connected", "type": "postgres_or_sqlite"}
         is_db_healthy = True
-    except Exception as e:
+    except (OSError, RedisConnectionError, RuntimeError, TimeoutError) as e:
         db_status = {"status": "unhealthy", "error": str(e)}
 
     # 2. Check Task Queue

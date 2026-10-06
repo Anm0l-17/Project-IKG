@@ -67,8 +67,8 @@ class NewsAPIFallbackAdapter(BaseIngestionAdapter):
                             published_at = dateutil.parser.parse(item["publishedAt"])
                             if published_at.tzinfo is None:
                                 published_at = published_at.replace(tzinfo=UTC)
-                        except Exception:
-                            pass
+                        except (TypeError, ValueError, OverflowError) as error:
+                            logger.warning("Failed to parse publishedAt date: %s", error)
 
                     clean_text = (
                         item.get("content") or item.get("description") or headline
@@ -88,7 +88,7 @@ class NewsAPIFallbackAdapter(BaseIngestionAdapter):
                             summary=item.get("description"),
                         )
                     )
-        except Exception:
-            pass
+        except (httpx.HTTPError, ValueError):
+            logger.exception("NewsAPI fallback ingestion failed")
 
         return articles

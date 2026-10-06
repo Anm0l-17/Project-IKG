@@ -1,4 +1,5 @@
 import logging
+from typing import ClassVar
 from urllib.parse import urlparse
 
 from arq.connections import RedisSettings
@@ -38,13 +39,13 @@ class WorkerSettings:
     Run via: arq app.workers.arq_worker.WorkerSettings
     """
 
-    functions = [
+    functions: ClassVar[tuple] = (
         task_ingest_rss,
         task_verification_consensus,
         task_infer_relationships,
         task_cluster_stories,
         task_backfill_embeddings,
-    ]
+    )
     redis_settings = get_redis_settings()
     on_startup = startup
     on_shutdown = shutdown

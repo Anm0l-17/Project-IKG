@@ -779,3 +779,11 @@ shared/
     lib/
     hooks/
     types/
+
+## Timeline Page Update
+
+The `/timeline` route has been implemented in the backend at `GET /api/v1/events/{id}/timeline` and a corresponding frontend page `frontend/app/timeline/page.tsx` now displays a chronological view of events with filtering, search, and expand capabilities.
+
+## Credential Validation
+
+Production startup now validates that all required credential environment variables (`DATABASE_URL`, `REDIS_URL`, `NEO4J_PASSWORD`, `MINIO_SECRET_KEY`, etc.) are set and not using default insecure values. A `RuntimeError` is raised if validation fails, ensuring secure deployments.

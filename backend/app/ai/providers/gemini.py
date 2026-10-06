@@ -22,7 +22,7 @@ class GeminiLLMProvider(LLMProvider):
                 from google import genai
 
                 self.client = genai.Client(api_key=self.api_key)
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Failed to initialize Gemini Client: {e}")
 
     async def generate_reasoning(
@@ -65,7 +65,7 @@ class GeminiLLMProvider(LLMProvider):
                 referenced_evidence=parsed.get("referenced_evidence", []),
                 raw_response=parsed,
             )
-        except Exception as e:
+        except (KeyError, TypeError, ValueError, RuntimeError) as e:
             logger.error(f"Gemini generate_reasoning failed: {e}")
             return LLMResponse(
                 decision="NEW_EVENT",
@@ -91,6 +91,6 @@ class GeminiLLMProvider(LLMProvider):
                 model="gemini-2.5-pro", contents=prompt, config=config
             )
             return response.text or context[:300]
-        except Exception as e:
+        except (AttributeError, RuntimeError, TypeError, ValueError) as e:
             logger.error(f"Gemini generate_summary failed: {e}")
             return f"Summary ({summary_type}): {context[:250]}..."

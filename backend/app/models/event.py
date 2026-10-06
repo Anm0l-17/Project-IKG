@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -6,6 +7,18 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.postgres import Base
 from app.db.types import VectorType
 from app.models.base import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.article import Article
+    from app.models.claim import Claim
+    from app.models.domain import Domain
+    from app.models.entity import EventEntity
+    from app.models.evidence import Evidence
+    from app.models.relationship import EventRelationship
+    from app.models.story import Story
+    from app.models.timeline import TimelineEntry
+    from app.models.topic import Topic
+    from app.models.verification import Verification
 
 
 class Event(Base, TimestampMixin):

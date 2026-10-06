@@ -2,6 +2,8 @@ import asyncio
 from collections.abc import Callable
 from typing import Any
 
+from redis.exceptions import ConnectionError as RedisConnectionError
+
 from app.core.config import settings
 from app.core.logger import logger
 
@@ -40,7 +42,7 @@ class TaskDispatcher:
                 "Successfully connected to Redis ARQ task pool", host=host, port=port
             )
             return self._arq_pool
-        except Exception as e:
+        except (OSError, RedisConnectionError, RuntimeError, TypeError, ValueError) as e:
             self._redis_available = False
             self._arq_pool = None
             logger.warning(
@@ -73,7 +75,7 @@ class TaskDispatcher:
                     "backend": "redis_arq",
                     "task_name": task_name,
                 }
-            except Exception as e:
+            except (OSError, RedisConnectionError, RuntimeError, TypeError, ValueError) as e:
                 logger.warning(
                     f"Failed to enqueue to Redis ARQ ({e}); falling back to local task."
                 )
@@ -101,7 +103,7 @@ class TaskDispatcher:
                 f"[In-Process Background Task] Succeeded '{task_name}'",
                 result=str(result)[:200],
             )
-        except Exception as e:
+        except (RuntimeError, TypeError, ValueError) as e:
             logger.error(
                 f"[In-Process Background Task] Failed '{task_name}': {e}", exc_info=True
             )
@@ -111,14 +113,14 @@ class TaskDispatcher:
         pool = await self.get_redis_pool()
         if pool is not None:
             try:
-                pong = await pool.ping()
+                await pool.ping()
                 return {
                     "status": "healthy",
                     "distributed_queue": "connected",
                     "backend": "redis_arq",
                     "redis_url": settings.REDIS_URL,
                 }
-            except Exception as e:
+            except (OSError, RedisConnectionError, RuntimeError, TypeError, ValueError) as e:
                 return {
                     "status": "degraded",
                     "distributed_queue": "disconnected",

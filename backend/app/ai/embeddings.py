@@ -1,5 +1,8 @@
+import logging
 import math
 import re
+
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
@@ -15,7 +18,7 @@ class EmbeddingService:
             from sentence_transformers import SentenceTransformer
 
             self.model = SentenceTransformer(model_name)
-        except Exception:
+        except (ImportError, OSError, RuntimeError):
             self.model = None
 
     def generate_embedding(self, text: str) -> list[float]:
@@ -29,8 +32,8 @@ class EmbeddingService:
             try:
                 embedding = self.model.encode(text, convert_to_numpy=True)
                 return embedding.tolist()
-            except Exception:
-                pass
+            except (AttributeError, RuntimeError, TypeError, ValueError) as error:
+                logger.warning("Embedding model failed; using deterministic fallback: %s", error)
 
         # Deterministic 384-dim Hashed Term-Frequency Fallback
         return self._generate_fallback_embedding(text)

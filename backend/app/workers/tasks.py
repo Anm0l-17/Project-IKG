@@ -47,7 +47,7 @@ async def task_ingest_rss(
             try:
                 articles = await pipeline.ingest_from_adapter(adapter, limit=limit)
                 saved_articles.extend(articles)
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Ingestion error for {adapter.source_name}: {e}")
 
         if not saved_articles:
@@ -55,7 +55,7 @@ async def task_ingest_rss(
                 fallback = NewsAPIFallbackAdapter()
                 articles = await pipeline.ingest_from_adapter(fallback, limit=limit)
                 saved_articles.extend(articles)
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Fallback ingestion error: {e}")
 
         created_events_count = 0

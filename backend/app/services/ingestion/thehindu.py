@@ -5,6 +5,7 @@ import feedparser
 import httpx
 from bs4 import BeautifulSoup
 
+from app.core.logger import logger
 from app.services.ingestion.base import BaseIngestionAdapter, IngestedArticleDTO
 
 
@@ -46,8 +47,8 @@ class TheHinduAdapter(BaseIngestionAdapter):
                             published_at = dateutil.parser.parse(entry.published)
                             if published_at.tzinfo is None:
                                 published_at = published_at.replace(tzinfo=UTC)
-                        except Exception:
-                            pass
+                        except (TypeError, ValueError, OverflowError) as error:
+                            logger.warning("Failed to parse published date: %s", error)
 
                     summary_raw = getattr(entry, "summary", "") or getattr(
                         entry, "description", ""
@@ -71,7 +72,7 @@ class TheHinduAdapter(BaseIngestionAdapter):
                             else clean_text,
                         )
                     )
-        except Exception:
-            pass
+        except (httpx.HTTPError, ValueError) as error:
+            logger.exception("The Hindu ingestion failed: %s", error)
 
         return articles

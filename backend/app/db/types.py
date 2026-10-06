@@ -32,7 +32,7 @@ class VectorType(TypeDecorator):
             try:
                 parsed = json.loads(value)
                 return [float(x) for x in parsed]
-            except Exception:
+            except (TypeError, ValueError, json.JSONDecodeError):
                 return None
         if isinstance(value, (list, tuple)):
             return [float(x) for x in value]
