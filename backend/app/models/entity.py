@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import JSON, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.postgres import Base
 from app.models.base import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.event import Event
 
 
 class Entity(Base, TimestampMixin):

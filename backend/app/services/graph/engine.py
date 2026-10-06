@@ -43,7 +43,7 @@ class GraphEngine:
             from sentence_transformers import CrossEncoder
 
             self._cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-        except Exception:
+        except (ImportError, OSError, RuntimeError):
             self._cross_encoder = None
 
     def _has_causal_phrasing(self, text: str) -> bool:
@@ -60,7 +60,7 @@ class GraphEngine:
 
                     score = 1.0 / (1.0 + math.exp(-score))
                 return score
-            except Exception as e:
+            except (OverflowError, RuntimeError, TypeError, ValueError) as e:
                 logger.warning(
                     f"CrossEncoder scoring failed, falling back to embeddings: {e}"
                 )

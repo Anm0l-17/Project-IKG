@@ -1,8 +1,15 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.postgres import Base
 from app.models.base import TimestampMixin
+
+if TYPE_CHECKING:
+    from app.models.domain import Domain
+    from app.models.event import Event
+    from app.models.story import Story
 
 
 class Topic(Base, TimestampMixin):

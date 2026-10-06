@@ -37,7 +37,7 @@ async def run_ingestion_background():
             try:
                 articles = await pipeline.ingest_from_adapter(adapter, limit=20)
                 saved_articles.extend(articles)
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Ingestion failed for {adapter.source_name}: {e}")
                 errors.append(f"Failed {adapter.source_name}: {e!s}")
 
@@ -48,7 +48,7 @@ async def run_ingestion_background():
                     fallback, limit=20
                 )
                 saved_articles.extend(fallback_articles)
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Fallback ingestion failed: {e}")
 
         candidate_service = CandidateEventService(db)

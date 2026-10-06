@@ -1,5 +1,6 @@
 from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,10 +44,41 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "qwen3:8b"
-
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
+    @model_validator(mode="after")
+    def _validate_production_credentials(self) -> "Settings":
+        """Validate that production credentials are not default values.
+
+        Raises:
+            RuntimeError: If any credential contains a known default placeholder.
+        """
+        defaults = {
+            "DATABASE_URL": "ikg_password",
+            "ALEMBIC_DATABASE_URL": "ikg_password",
+            "NEO4J_PASSWORD": "ikg_password",
+            "MINIO_ACCESS_KEY": "minioadmin",
+            "MINIO_SECRET_KEY": "minioadmin",
+        }
+        if self.APP_ENV != "production":
+            return self
+
+        for attr, default in defaults.items():
+            value = getattr(self, attr)
+            if (default == "" and not value) or (default and default in str(value)):
+                raise RuntimeError(
+                    "Production credentials are missing or default credentials are being used.\n"
+                    "Set secure values for the configured credential environment variables."
+                )
+        if self.LLM_PROVIDER == "gemini" and not self.GEMINI_API_KEY:
+            raise RuntimeError(
+                "Production credentials are missing or default credentials are being used.\n"
+                "Set secure values for the configured credential environment variables."
+            )
+        return self
 
 settings = Settings()

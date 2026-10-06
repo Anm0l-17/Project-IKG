@@ -30,7 +30,7 @@ async def run_scheduled_ingestion_job():
                 logger.info(
                     f"Ingested {len(articles)} articles from {adapter.source_name}"
                 )
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(
                     f"Scheduled ingestion error for {adapter.source_name}: {e}"
                 )
@@ -46,7 +46,7 @@ async def run_scheduled_ingestion_job():
                 logger.info(
                     f"Ingested {len(fallback_articles)} articles from NewsAPI Fallback"
                 )
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Scheduled ingestion error for Fallback: {e}")
 
         if saved_articles:

@@ -36,7 +36,7 @@ for i in {1..30}; do
 done
 
 echo "5. Running Database Migrations..."
-docker compose exec -T backend alembic upgrade head || true
+docker compose exec -T backend alembic upgrade head
 
 echo "=========================================================="
 echo "🎉 India Knowledge Graph is LIVE!"

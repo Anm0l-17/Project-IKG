@@ -1,6 +1,10 @@
+import logging
 import re
+from typing import ClassVar
 
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class ExtractedEntityDTO(BaseModel):
@@ -15,7 +19,7 @@ class EntityExtractionService:
     bills, acts, states, persons, and organizations.
     """
 
-    INDIAN_STATES = [
+    INDIAN_STATES: ClassVar[tuple[str, ...]] = (
         "Andhra Pradesh",
         "Arunachal Pradesh",
         "Assam",
@@ -45,9 +49,9 @@ class EntityExtractionService:
         "Uttarakhand",
         "West Bengal",
         "Delhi",
-    ]
+    )
 
-    ORGANIZATIONS = [
+    ORGANIZATIONS: ClassVar[tuple[str, ...]] = (
         "ISRO",
         "DRDO",
         "RBI",
@@ -59,7 +63,7 @@ class EntityExtractionService:
         "Lok Sabha",
         "Rajya Sabha",
         "Cabinet",
-    ]
+    )
 
     def __init__(self):
         self.nlp = None
@@ -67,7 +71,7 @@ class EntityExtractionService:
             import spacy
 
             self.nlp = spacy.load("en_core_web_sm")
-        except Exception:
+        except (ImportError, OSError, RuntimeError):
             self.nlp = None
 
     def extract_entities(self, text: str) -> list[ExtractedEntityDTO]:
@@ -123,8 +127,8 @@ class EntityExtractionService:
                             entities[name] = ExtractedEntityDTO(
                                 canonical_name=name, entity_type=etype, confidence=0.85
                             )
-            except Exception:
-                pass
+            except (AttributeError, KeyError, RuntimeError, TypeError) as error:
+                logger.warning("spaCy entity extraction failed: %s", error)
 
         return list(entities.values())
 

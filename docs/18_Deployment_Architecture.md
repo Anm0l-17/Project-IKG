@@ -566,3 +566,11 @@ The platform is production-ready only if:
 The deployment architecture is designed to support local development, continuous delivery and future horizontal scaling while maintaining operational simplicity during the initial release.
 
 V1 deployment includes Celery workers and Celery Beat backed by Redis for ingestion, matching, verification, summarization, and scheduled rechecks. PostgreSQL remains the structured source of truth and Neo4j a validated graph projection.
+
+## Timeline Route
+
+The backend now provides `GET /api/v1/events/{id}/timeline` which returns an ordered list of related events for a given event ID. The frontend `frontend/app/timeline/page.tsx` consumes this endpoint to render an interactive timeline view with date filters, category filters, and expandable event entries.
+
+## Production Credential Validation
+
+During startup the backend validates that critical environment variables (`DATABASE_URL`, `REDIS_URL`, `NEO4J_PASSWORD`, `MINIO_SECRET_KEY`, `GEMINI_API_KEY`, etc.) are set to non‑default values. If any required credential is missing or defaults are detected, a `RuntimeError` is raised and the service exits, preventing insecure deployments.

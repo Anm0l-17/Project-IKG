@@ -31,7 +31,7 @@ class CandidateMatchingService:
             from sentence_transformers import CrossEncoder
 
             self.cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-        except Exception:
+        except (ImportError, OSError, RuntimeError):
             self.cross_encoder = None
 
     def match_article_to_events(
@@ -99,7 +99,7 @@ class CandidateMatchingService:
                         similarity_score=float(best_score),
                         stage="STAGE2_CROSS_ENCODER",
                     )
-            except Exception as e:
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.warning(f"CrossEncoder prediction failed: {e}")
 
         # If CrossEncoder is unavailable or below threshold, use top Stage 1 candidate if >= 0.85

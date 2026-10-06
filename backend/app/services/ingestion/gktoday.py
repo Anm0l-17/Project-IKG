@@ -1,9 +1,12 @@
+import logging
 from datetime import UTC, datetime
 
 import dateutil.parser
 import feedparser
 import httpx
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 
 from app.services.ingestion.base import BaseIngestionAdapter, IngestedArticleDTO
 
@@ -43,8 +46,8 @@ class GKTodayAdapter(BaseIngestionAdapter):
                             published_at = dateutil.parser.parse(entry.published)
                             if published_at.tzinfo is None:
                                 published_at = published_at.replace(tzinfo=UTC)
-                        except Exception:
-                            pass
+                        except (TypeError, ValueError, OverflowError) as error:
+                            logger.warning("Failed to parse GKToday date: %s", error)
 
                     # Clean summary/HTML content
                     summary_raw = getattr(entry, "summary", "") or getattr(
@@ -69,7 +72,7 @@ class GKTodayAdapter(BaseIngestionAdapter):
                             else clean_text,
                         )
                     )
-        except Exception:
-            pass
+        except (httpx.HTTPError, ValueError):
+            logger.exception("GKToday ingestion failed")
 
         return articles

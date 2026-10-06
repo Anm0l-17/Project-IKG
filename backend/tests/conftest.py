@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio
@@ -6,8 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.db.postgres import Base, get_db
 from app.main import app
-
-import os
 
 # Default to in-memory SQLite for fast local unit tests.
 # Set TEST_DATABASE_URL=postgresql+asyncpg://ikg_user:ikg_password@localhost:5432/ikg_test

@@ -73,7 +73,7 @@ Evaluate and return JSON decision:
                 f"LLM Ambiguity Resolution: {response.decision} (Confidence: {response.confidence})"
             )
             return response
-        except Exception as e:
+        except (RuntimeError, TypeError, ValueError) as e:
             logger.error(f"LLM Reasoning Engine failure: {e}")
             return LLMResponse(
                 decision="NEW_EVENT",

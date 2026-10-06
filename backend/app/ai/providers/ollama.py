@@ -58,7 +58,7 @@ class OllamaLLMProvider(LLMProvider):
                     referenced_evidence=parsed.get("referenced_evidence", []),
                     raw_response=parsed,
                 )
-        except Exception as e:
+        except (httpx.HTTPError, json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
             logger.warning(f"Ollama generate_reasoning execution error: {e}")
             return LLMResponse(
                 decision="NEW_EVENT",
@@ -84,7 +84,7 @@ class OllamaLLMProvider(LLMProvider):
                 if res.status_code == 200:
                     data = res.json()
                     return data.get("response", "").strip() or context[:300]
-        except Exception as e:
+        except (httpx.HTTPError, TypeError, ValueError) as e:
             logger.warning(f"Ollama generate_summary execution error: {e}")
 
         return f"Summary ({summary_type}): {context[:250]}..."
