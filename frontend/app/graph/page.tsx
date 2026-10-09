@@ -22,22 +22,25 @@ export default function GraphPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const loadGraph = async (category?: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const cat = category === 'All' ? undefined : category;
-      const data = await fetchGlobalGraph(cat, 50);
-      setGraphData(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load Knowledge Graph data.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadGraph(selectedCategory);
+    async function loadGraph() {
+      try {
+        setLoading(true);
+        setError(null);
+        const cat = selectedCategory === 'All' ? undefined : selectedCategory;
+        const data = await fetchGlobalGraph(cat, 50);
+        setGraphData(data);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to load Knowledge Graph data.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadGraph();
   }, [selectedCategory]);
 
   return (
@@ -58,7 +61,23 @@ export default function GraphPage() {
         </div>
 
         <button
-          onClick={() => loadGraph(selectedCategory)}
+          onClick={async () => {
+            try {
+              setLoading(true);
+              setError(null);
+              const cat = selectedCategory === 'All' ? undefined : selectedCategory;
+              const data = await fetchGlobalGraph(cat, 50);
+              setGraphData(data);
+            } catch (err: unknown) {
+              if (err instanceof Error) {
+                setError(err.message);
+              } else {
+                setError('Failed to load Knowledge Graph data.');
+              }
+            } finally {
+              setLoading(false);
+            }
+          }}
           disabled={loading}
           className="inline-flex items-center space-x-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-sm self-start md:self-auto"
         >
@@ -95,7 +114,23 @@ export default function GraphPage() {
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
           <p className="text-sm font-medium text-red-800">{error}</p>
           <button
-            onClick={() => loadGraph(selectedCategory)}
+            onClick={async () => {
+              try {
+                setLoading(true);
+                setError(null);
+                const cat = selectedCategory === 'All' ? undefined : selectedCategory;
+                const data = await fetchGlobalGraph(cat, 50);
+                setGraphData(data);
+              } catch (err: unknown) {
+                if (err instanceof Error) {
+                  setError(err.message);
+                } else {
+                  setError('Failed to load Knowledge Graph data.');
+                }
+              } finally {
+                setLoading(false);
+              }
+            }}
             className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors"
           >
             Retry

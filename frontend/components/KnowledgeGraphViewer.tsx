@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { GraphResponse, GraphNode, GraphEdge } from '@/lib/types';
-import { Network, ZoomIn, ZoomOut, RotateCcw, Info, ArrowRight, Layers, ShieldCheck, Clock } from 'lucide-react';
+import { GraphResponse, GraphNode } from '@/lib/types';
+import { Network, ZoomIn, ZoomOut, ArrowRight, Layers, ShieldCheck } from 'lucide-react';
 
 interface KnowledgeGraphViewerProps {
   graph: GraphResponse;

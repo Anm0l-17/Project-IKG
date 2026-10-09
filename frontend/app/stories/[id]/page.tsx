@@ -66,8 +66,12 @@ export default function StoryDetailPage({ params }: StoryDetailPageProps) {
       try {
         const data = await fetchStoryById(storyId);
         setStory(data);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load Story.');
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to load Story.');
+        }
       } finally {
         setLoading(false);
       }

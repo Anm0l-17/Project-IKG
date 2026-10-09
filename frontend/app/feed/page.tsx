@@ -29,22 +29,25 @@ export default function FeedPage() {
     null
   );
 
-  const loadEvents = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const vStatus =
-        verificationFilter === 'All' ? undefined : verificationFilter;
-      const data = await fetchEvents(vStatus);
-      setEvents(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to connect to event API baseline.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    async function loadEvents() {
+      setLoading(true);
+      setError(null);
+      try {
+        const vStatus =
+          verificationFilter === 'All' ? undefined : verificationFilter;
+        const data = await fetchEvents(vStatus);
+        setEvents(data);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to connect to event API baseline.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
     loadEvents();
   }, [verificationFilter]);
 
@@ -54,12 +57,18 @@ export default function FeedPage() {
     try {
       const res: IngestionJobResponse = await triggerIngestion();
       setIngestNotification(res.message);
-      // Reload events after triggering job
-      setTimeout(loadEvents, 2000);
-    } catch (err: any) {
-      setIngestNotification(
-        `Ingestion Trigger Failed: ${err.message || 'Network error'}`
-      );
+      setTimeout(async () => {
+        const vStatus =
+          verificationFilter === 'All' ? undefined : verificationFilter;
+        const data = await fetchEvents(vStatus);
+        setEvents(data);
+      }, 2000);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setIngestNotification(`Ingestion Trigger Failed: ${err.message}`);
+      } else {
+        setIngestNotification('Ingestion Trigger Failed: Network error');
+      }
     } finally {
       setIngesting(false);
     }
@@ -161,7 +170,24 @@ export default function FeedPage() {
           <h3 className="font-semibold text-lg">Backend API Connection Error</h3>
           <p className="text-sm max-w-md mx-auto">{error}</p>
           <button
-            onClick={loadEvents}
+            onClick={async () => {
+              setLoading(true);
+              setError(null);
+              try {
+                const vStatus =
+                  verificationFilter === 'All' ? undefined : verificationFilter;
+                const data = await fetchEvents(vStatus);
+                setEvents(data);
+              } catch (err: unknown) {
+                if (err instanceof Error) {
+                  setError(err.message);
+                } else {
+                  setError('Failed to connect to event API baseline.');
+                }
+              } finally {
+                setLoading(false);
+              }
+            }}
             className="mt-4 px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700"
           >
             Retry Connection
@@ -172,7 +198,7 @@ export default function FeedPage() {
           <Sparkles className="w-10 h-10 text-slate-300 mx-auto" />
           <h3 className="font-bold text-slate-800 text-lg">No Events Found</h3>
           <p className="text-sm text-slate-500 max-w-sm mx-auto">
-            No events match the selected category or verification filter. Click "Trigger RSS Ingestion" above to fetch latest articles.
+            No events match the selected category or verification filter. Click &quot;Trigger RSS Ingestion&quot; above to fetch latest articles.
           </p>
         </div>
       ) : (

@@ -41,8 +41,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         ]);
         setEvent(eventRes);
         setGraphData(graphRes);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load event details.');
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to load event details.');
+        }
       } finally {
         setLoading(false);
       }
