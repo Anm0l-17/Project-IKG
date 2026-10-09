@@ -55,21 +55,24 @@ export default function StoriesPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('All');
 
-  const loadStories = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const statusArg = statusFilter === 'All' ? undefined : statusFilter;
-      const data = await fetchStories(undefined, undefined, statusArg);
-      setStories(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load Stories.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    async function loadStories() {
+      try {
+        setLoading(true);
+        setError(null);
+        const statusArg = statusFilter === 'All' ? undefined : statusFilter;
+        const data = await fetchStories(undefined, undefined, statusArg);
+        setStories(data);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Failed to load Stories.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
     loadStories();
   }, [statusFilter]);
 
@@ -114,7 +117,23 @@ export default function StoriesPage() {
           ))}
         </div>
         <button
-          onClick={loadStories}
+          onClick={async () => {
+            try {
+              setLoading(true);
+              setError(null);
+              const statusArg = statusFilter === 'All' ? undefined : statusFilter;
+              const data = await fetchStories(undefined, undefined, statusArg);
+              setStories(data);
+            } catch (err: unknown) {
+              if (err instanceof Error) {
+                setError(err.message);
+              } else {
+                setError('Failed to load Stories.');
+              }
+            } finally {
+              setLoading(false);
+            }
+          }}
           disabled={loading}
           className="inline-flex items-center space-x-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors"
         >
@@ -135,7 +154,23 @@ export default function StoriesPage() {
           <AlertCircle className="w-8 h-8 text-red-500 mx-auto" />
           <p className="text-sm font-medium text-red-800">{error}</p>
           <button
-            onClick={loadStories}
+            onClick={async () => {
+              try {
+                setLoading(true);
+                setError(null);
+                const statusArg = statusFilter === 'All' ? undefined : statusFilter;
+                const data = await fetchStories(undefined, undefined, statusArg);
+                setStories(data);
+              } catch (err: unknown) {
+                if (err instanceof Error) {
+                  setError(err.message);
+                } else {
+                  setError('Failed to load Stories.');
+                }
+              } finally {
+                setLoading(false);
+              }
+            }}
             className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700"
           >
             Retry

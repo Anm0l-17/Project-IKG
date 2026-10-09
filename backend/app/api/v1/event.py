@@ -28,31 +28,35 @@ async def run_ingestion_background():
     Offline/Background worker execution for RSS ingestion and candidate creation.
     """
     async with AsyncSessionLocal() as db:
-        pipeline = IngestionPipeline(db)
-        adapters = [GKTodayAdapter(), TheHinduAdapter(), IndianExpressAdapter()]
-        saved_articles = []
-        errors = []
+        await _execute_ingestion_pipeline(db)
 
-        for adapter in adapters:
-            try:
-                articles = await pipeline.ingest_from_adapter(adapter, limit=20)
-                saved_articles.extend(articles)
-            except (RuntimeError, TypeError, ValueError) as e:
-                logger.error(f"Ingestion failed for {adapter.source_name}: {e}")
-                errors.append(f"Failed {adapter.source_name}: {e!s}")
 
-        if not saved_articles and errors:
-            try:
-                fallback = NewsAPIFallbackAdapter()
-                fallback_articles = await pipeline.ingest_from_adapter(
-                    fallback, limit=20
-                )
-                saved_articles.extend(fallback_articles)
-            except (RuntimeError, TypeError, ValueError) as e:
-                logger.error(f"Fallback ingestion failed: {e}")
+async def _execute_ingestion_pipeline(db: AsyncSession):
+    pipeline = IngestionPipeline(db)
+    adapters = [GKTodayAdapter(), TheHinduAdapter(), IndianExpressAdapter()]
+    saved_articles = []
+    errors = []
 
-        candidate_service = CandidateEventService(db)
-        await candidate_service.generate_candidates_from_articles(saved_articles)
+    for adapter in adapters:
+        try:
+            articles = await pipeline.ingest_from_adapter(adapter, limit=20)
+            saved_articles.extend(articles)
+        except (RuntimeError, TypeError, ValueError) as e:
+            logger.error(f"Ingestion failed for {adapter.source_name}: {e}")
+            errors.append(f"Failed {adapter.source_name}: {e!s}")
+
+    if not saved_articles and errors:
+        try:
+            fallback = NewsAPIFallbackAdapter()
+            fallback_articles = await pipeline.ingest_from_adapter(
+                fallback, limit=20
+            )
+            saved_articles.extend(fallback_articles)
+        except (RuntimeError, TypeError, ValueError) as e:
+            logger.error(f"Fallback ingestion failed: {e}")
+
+    candidate_service = CandidateEventService(db)
+    await candidate_service.generate_candidates_from_articles(saved_articles)
 
 
 @router.get(

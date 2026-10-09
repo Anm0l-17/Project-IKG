@@ -5,8 +5,9 @@ Revises: 002_reconcile_event_contract
 Create Date: 2026-09-20
 
 """
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "003_event_relationships"

@@ -186,10 +186,8 @@ class HybridSearchService:
                     # In sparse fallback embedding, scale dot-product similarity
                     semantic_score = min(1.0, max(0.0, sim * 2.5))
                 else:
-                    # Cosine similarity in MiniLM is [-1, 1], normalize to [0, 1]
-                    semantic_score = max(
-                        0.0, min(1.0, (sim + 1.0) / 2.0 if sim < 0 else sim)
-                    )
+                    # SentenceTransformer / cosine similarity [-1.0, 1.0] -> [0.0, 1.0]
+                    semantic_score = max(0.0, min(1.0, (sim + 1.0) / 2.0))
 
             # 3. Combined Final Relevance Score
             if mode == "lexical":

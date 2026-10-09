@@ -5,9 +5,9 @@ Revises: 003_event_relationships
 Create Date: 2026-09-25
 
 """
-from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "004_event_embeddings_and_search"
@@ -38,7 +38,7 @@ def upgrade() -> None:
                     RAISE NOTICE 'Skipping HNSW index creation: %', SQLERRM;
                 END $$;
             """)
-        except Exception:
+        except sa.exc.DBAPIError:
             pass
 
         # Create GIN full text search index for lexical retrieval
@@ -47,7 +47,7 @@ def upgrade() -> None:
                 CREATE INDEX IF NOT EXISTS ix_events_fts ON events 
                 USING gin(to_tsvector('english', coalesce(canonical_title, '') || ' ' || coalesce(summary, '')));
             """)
-        except Exception:
+        except sa.exc.DBAPIError:
             pass
 
 
@@ -58,7 +58,7 @@ def downgrade() -> None:
         try:
             op.execute("DROP INDEX IF EXISTS ix_events_fts;")
             op.execute("DROP INDEX IF EXISTS ix_events_embedding_hnsw;")
-        except Exception:
+        except sa.exc.DBAPIError:
             pass
 
     op.drop_column("events", "embedding")

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { searchEvents } from '@/lib/api';
-import { SearchResultItem, SearchResponse } from '@/lib/types';
+import { SearchResultItem } from '@/lib/types';
 import {
   Search,
   Sparkles,
@@ -81,30 +81,38 @@ export default function SearchPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const performSearch = async (searchTerm: string) => {
-    if (!searchTerm.trim()) return;
-    setLoading(true);
-    setError(null);
-    setHasSearched(true);
-    setActiveQuery(searchTerm);
+  const performSearch = useCallback(
+    async (searchTerm: string) => {
+      if (!searchTerm.trim()) return;
+      setLoading(true);
+      setError(null);
+      setHasSearched(true);
+      setActiveQuery(searchTerm);
 
-    try {
-      const resp = await searchEvents(searchTerm.trim(), {
-        mode,
-        category: category === 'All' ? undefined : category,
-        verificationStatus: verificationFilter === 'All' ? undefined : verificationFilter,
-        limit: 30,
-      });
-      setResults(resp.results);
-      setTotalResults(resp.total_results);
-    } catch (err: any) {
-      setError(err.message || 'Search failed. Please try again.');
-      setResults([]);
-      setTotalResults(0);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const resp = await searchEvents(searchTerm.trim(), {
+          mode,
+          category: category === 'All' ? undefined : category,
+          verificationStatus:
+            verificationFilter === 'All' ? undefined : verificationFilter,
+          limit: 30,
+        });
+        setResults(resp.results);
+        setTotalResults(resp.total_results);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('Search failed. Please try again.');
+        }
+        setResults([]);
+        setTotalResults(0);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [mode, category, verificationFilter]
+  );
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +124,7 @@ export default function SearchPage() {
     if (activeQuery) {
       performSearch(activeQuery);
     }
-  }, [mode, category, verificationFilter]);
+  }, [activeQuery, performSearch]);
 
   const formattedDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-IN', {
