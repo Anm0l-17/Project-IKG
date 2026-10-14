@@ -337,6 +337,11 @@ Target
 
 Hallucination = 0
 
+Hermetic Testing Rules:
+- Tests must never make live network calls to Gemini or external LLMs.
+- Providers must be instantiated with disabled/empty keys, unconfigured placeholders, or mocked clients.
+- Verify fallback determinism across SDK exceptions, transport errors (e.g. `httpx.ConnectError`), and malformed responses.
+
 ---
 
 # Voting Engine Tests

@@ -915,6 +915,11 @@ Skip
 
 Manual Review
 
+LLM Provider Isolation & Fallback Policy:
+- Keys: Empty or placeholder keys (e.g. `your_gemini_api_key_here`) mark provider unconfigured without making external network calls.
+- Boundary: Provider adapter isolates `google.genai.errors.APIError`, `httpx.HTTPError` (including `ConnectError` and timeouts), and `json.JSONDecodeError`.
+- Fallback Contract: Reasoning falls back to `NEW_EVENT` with `0.5` confidence; summarization returns non-empty structured fallback text.
+
 Graph Failure
 
 ↓
